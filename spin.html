@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🎡 Рулетка лучших</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -17,39 +17,21 @@
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: white;
       min-height: 100vh;
-      /* ИСПРАВЛЕНО: разрешаем прокрутку всей страницы */
-      overflow-y: auto;
-      display: block;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       text-align: center;
-      padding: 20px;
     }
     .container {
       position: relative;
       width: 100%;
       max-width: 500px;
-      margin: 0 auto;
       padding: 20px;
-    }
-    .stars {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .star {
-      position: absolute;
-      background: white;
-      border-radius: 50%;
-      animation: twinkle var(--dur, 3s) infinite ease-in-out;
-    }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 1; }
+      z-index: 2;
     }
     .header {
       margin-bottom: 20px;
-      z-index: 2;
-      position: relative;
     }
     h1 {
       font-size: 2.2em;
@@ -69,7 +51,6 @@
       width: 300px;
       height: 300px;
       margin: 0 auto 30px;
-      z-index: 2;
     }
     .wheel {
       width: 100%;
@@ -107,6 +88,10 @@
       justify-content: center;
       align-items: center;
       z-index: 10;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
     }
     .center::after {
@@ -143,8 +128,7 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.1);
       display: none;
-      /* ИСПРАВЛЕНО: добавляем прокрутку для результатов */
-      max-height: 400px;
+      max-height: 300px;
       overflow-y: auto;
     }
     .result-title {
@@ -164,10 +148,17 @@
       font-size: 1.1em;
     }
     .medal { font-size: 1.3em; margin-right: 6px; }
+    .fallback-badge {
+      background: #d32f2f;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
-  <div class="stars" id="stars"></div>
   <div class="container">
     <div class="header">
       <h1>🎡 Рулетка лучших</h1>
@@ -175,7 +166,7 @@
     </div>
 
     <div class="wheel-container">
-      <div class="wheel" id="wheel">Крутим...</div>
+      <div class="wheel" id="wheel">Готово!</div>
       <div class="center"></div>
     </div>
 
@@ -188,36 +179,27 @@
   </div>
 
   <script>
-    // === ГЕНЕРАЦИЯ ЗВЁЗД ===
-    const starsContainer = document.getElementById('stars');
-    for (let i = 0; i < 50; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.left = Math.random() * 100 + '%';
-      star.style.top = Math.random() * 100 + '%';
-      star.style.width = star.style.height = Math.random() * 3 + 'px';
-      star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
-      starsContainer.appendChild(star);
-    }
+    // === FALLBACK ДАННЫЕ (демо-режим) ===
+    const DEMO_DATA = [
+      {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
+      {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
+      {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
+      {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
+      {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
+    ];
 
-    // === АУДИО (FALLBACK — BASE64) ===
-    const spinSound = new Audio();
-    const winSound = new Audio();
-    
-    // Короткий "вжжжж" (base64, ~1 сек)
-    spinSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBU0NJSUkqUElDVAAPAAABTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//uQwAMDA1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV......"; // укорочено для чата; в реальном коде — полный base64
+    // === АУДИО (BASE64 — короткие фолбэки) ===
+    const spinSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLnBocD9pZD0xMDYyMzEAAAAAAAAAAAAAAAAAAA==");
+    const winSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLnBocD9pZD0xMTY3MzUAAAAAAAAAAAAAAAAAAA==");
 
-    // Победный "ding!" (base64)
-    winSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBU0NJSUkqUElDVAAPAAABTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//uQwAMDA1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV......";
+    // === URL (БЕЗ ПРОБЕЛОВ!) ===
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyQBgFVhhNhmhWGeLZB55tbpbxnJW5ah44DlhS_XRFTlBhzIORhJt_1bfen1OW1x51_WA/exec";
 
-    // === ПЕРЕМЕННЫЕ ===
+    // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
     const resultDiv = document.getElementById('result');
     const employeesList = document.getElementById('employeesList');
-
-    // 🔹 ИСПРАВЛЕННЫЙ GAS_URL — БЕЗ ПРОБЕЛОВ
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec";
 
     // === ФУНКЦИЯ КРУЧЕНИЯ ===
     async function spin() {
@@ -228,48 +210,63 @@
 
       // Анимация вращения
       const rotations = 5 + Math.random() * 5;
-      const baseDeg = 360 * rotations;
-      const finalDeg = baseDeg + Math.random() * 360;
+      const finalDeg = 360 * rotations + Math.random() * 360;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-      // Звук вращения
-      try { spinSound.play().catch(e => console.log('🔇 spin sound muted')); } catch {}
+      // Звук вращения (игнорируем ошибки)
+      try { spinSound.play(); } catch {}
 
-      // Запрос к GAS
+      let data = null;
+      let isDemo = false;
+
       try {
-        const response = await fetch(`${GAS_URL}?action=spin&t=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+        // 👇 Добавляем заголовок User-Agent, чтобы обойти некоторые блокировки
+        const response = await fetch(`${GAS_URL}?action=spin&t=${Date.now()}`, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
 
+        // Проверяем, не HTML ли это («Google 文件」 — это HTML!)
+        const text = await response.text();
+        if (text.includes('Google 文件') || text.includes('<html')) {
+          throw new Error('GAS вернул HTML — возможно, блокировка');
+        }
+
+        data = JSON.parse(text);
         if (!data.success) throw new Error(data.error || 'API error');
 
-        // Ждём завершения анимации (~5 сек)
-        await new Promise(r => setTimeout(r, 5000));
-
-        // Звук победы
-        try { winSound.play().catch(e => console.log('🔇 win sound muted')); } catch {}
-
-        // Показ результата
-        displayResults(data.data);
       } catch (err) {
-        console.error('❌ Ошибка:', err);
-        wheel.textContent = 'Ошибка';
-        spinBtn.textContent = '🔄 Повторить';
-        alert(`Ошибка загрузки:\n${err.message}`);
-      } finally {
-        spinBtn.disabled = false;
+        console.warn('⚠️ Основной запрос упал:', err.message);
+        // Переключаемся в демо-режим
+        data = { success: true, data: DEMO_DATA };
+        isDemo = true;
       }
+
+      // Ждём завершения анимации
+      await new Promise(r => setTimeout(r, 5000));
+
+      // Звук победы
+      try { winSound.play(); } catch {}
+
+      // Показываем результат
+      displayResults(data.data, isDemo);
+      spinBtn.disabled = false;
+      spinBtn.textContent = '🎯 Крутить снова!';
     }
 
-    function displayResults(employees) {
+    function displayResults(employees, isDemo = false) {
       employeesList.innerHTML = '';
       const medals = ['🥇', '🥈', '🥉', '🎖️', '🏅'];
 
-      employees.forEach((emp, i) => {
+      employees.slice(0, 5).forEach((emp, i) => {
         const div = document.createElement('div');
         div.className = 'employee';
+        let nameLine = `<span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}`;
+        if (isDemo) nameLine += ` <span class="fallback-badge">ДЕМО</span>`;
         div.innerHTML = `
-          <div class="employee-name"><span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}</div>
+          <div class="employee-name">${nameLine}</div>
           📞 Звонки: ${emp.calls || '–'}<br>
           ⏱ AHT: ${emp.aht || '–'}<br>
           ❌ Пропущенные: ${emp.missed || '–'}<br>
@@ -284,8 +281,8 @@
 
     spinBtn.addEventListener('click', spin);
 
-    // Telegram WebApp.ready()
-    if (window.Telegram && Telegram.WebApp) {
+    // Telegram WebApp
+    if (window.Telegram?.WebApp) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
     }
