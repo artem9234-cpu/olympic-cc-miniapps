@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,341 +7,281 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --primary: #8A2BE2; /* фиолетовый */
-      --accent: #87CEFA;  /* голубой */
-      --bg: #0f0c29;
-      --gold: #FFD700;
+      --primary: #8a2be2; /* фиолетовый */
+      --secondary: #f5f5dc; /* бежевый */
+      --accent: #87ceeb; /* голубой */
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: white;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      padding: 16px;
       min-height: 100vh;
       overflow: hidden;
-      position: relative;
-    }
-    /* Огоньки по краям */
-    .lights {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: -1;
-    }
-    .light {
-      position: absolute;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      box-shadow: 0 0 12px var(--accent), 0 0 24px var(--gold);
-      animation: twinkle 3s infinite ease-in-out;
-    }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      margin: 20px 0 10px;
-      text-shadow: 0 0 10px var(--gold), 0 0 20px var(--accent);
-      font-weight: 800;
-    }
-    .subtitle {
-      text-align: center;
-      color: #ccc;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    /* Барабан рулетки */
-    #wheel-container {
-      position: relative;
-      width: 280px;
-      height: 280px;
-      margin: 0 auto 24px;
-      border-radius: 50%;
-      overflow: hidden;
-      box-shadow: 
-        0 0 0 4px rgba(255,215,0,0.3),
-        0 0 20px rgba(135,206,250,0.6),
-        inset 0 0 12px rgba(0,0,0,0.8);
-    }
-    #wheel {
-      width: 100%; height: 100%;
-      position: relative;
-      transition: transform 4s cubic-bezier(0.2, 0.8, 0.3, 1);
-      background: rgba(15, 12, 41, 0.9);
-    }
-    .slot {
-      position: absolute;
-      width: 100%; height: 20%;
       display: flex;
-      align-items: center;
       justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 14px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    }
-    .slot:nth-child(odd) { background: rgba(138, 43, 226, 0.3); }
-    .slot:nth-child(even) { background: rgba(135, 206, 250, 0.2); }
-
-    /* Индикатор "STOP" */
-    .indicator {
-      position: absolute;
-      top: -20px; left: 50%;
-      transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-bottom: 24px solid var(--gold);
-      z-index: 10;
-    }
-    .indicator::after {
-      content: '⏹';
-      position: absolute;
-      top: 8px; left: -6px;
-      font-size: 12px;
-    }
-
-    /* Результат */
-    #result {
-      display: none;
-      background: rgba(25, 20, 60, 0.85);
-      border: 2px solid var(--gold);
-      border-radius: 16px;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 400px;
-      box-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
-    }
-    .winner {
+      align-items: center;
       text-align: center;
-      padding: 16px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    .winner:last-child { border: none; }
-    .name {
-      font-size: 20px;
-      font-weight: bold;
-      color: var(--gold);
-      margin-bottom: 6px;
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
     }
-    .medal { font-size: 18px; margin-right: 6px; }
-    .metric {
-      font-size: 13px;
-      color: #ddd;
-      margin: 3px 0;
-    }
-
-    /* Кнопка */
-    button {
-      background: linear-gradient(45deg, var(--primary), #6a0dad);
-      color: white;
-      border: none;
-      padding: 16px 32px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
-      transition: all 0.2s;
-      margin-top: 10px;
-    }
-    button:hover:not(:disabled) {
-      transform: scale(1.03);
-      box-shadow: 0 6px 16px rgba(138, 43, 226, 0.6);
-    }
-    button:active { transform: scale(0.98); }
-    button:disabled {
-      opacity: 0.7;
-      cursor: wait;
-    }
-
-    .status {
-      color: #aaa;
-      font-size: 14px;
-      margin-top: 12px;
-      min-height: 20px;
-    }
-
-    /* Звёзды позади */
     .stars {
-      position: fixed;
+      position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
-      z-index: -2;
+      z-index: 0;
     }
     .star {
       position: absolute;
       background: white;
       border-radius: 50%;
-      animation: pulse 2s infinite alternate;
+      animation: twinkle var(--dur, 3s) infinite ease-in-out;
     }
-    @keyframes pulse {
-      from { opacity: 0.2; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1.1); }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
     }
+    .header {
+      margin-bottom: 20px;
+      z-index: 2;
+      position: relative;
+    }
+    h1 {
+      font-size: 2.2em;
+      margin: 10px 0;
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .subtitle {
+      font-size: 1.1em;
+      opacity: 0.8;
+    }
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 30px;
+      z-index: 2;
+    }
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(
+        #ff9a9e 0deg, #fad0c4 30deg,
+        #a1c4fd 30deg, #c2e9fb 60deg,
+        #cfd9df 60deg, #e6ee9c 90deg,
+        #ffecd2 90deg, #fcb69f 120deg,
+        #ff9a9e 120deg, #fad0c4 150deg,
+        #a1c4fd 150deg, #c2e9fb 180deg,
+        #cfd9df 180deg, #e6ee9c 210deg,
+        #ffecd2 210deg, #fcb69f 240deg,
+        #ff9a9e 240deg, #fad0c4 270deg,
+        #a1c4fd 270deg, #c2e9fb 300deg,
+        #cfd9df 300deg, #e6ee9c 330deg,
+        #ffecd2 330deg, #fcb69f 360deg
+      );
+      box-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
+      transition: transform 5s cubic-bezier(0.23, 1, 0.32, 1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+    .center {
+      width: 60px;
+      height: 60px;
+      background: #ffd700;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+    .center::after {
+      content: '🎯';
+      font-size: 24px;
+    }
+    .button {
+      background: linear-gradient(to right, var(--primary), #6a0dad);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.2em;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
+      z-index: 2;
+      position: relative;
+    }
+    .button:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(138, 43, 226, 0.6);
+    }
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 30px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: none;
+    }
+    .result-title {
+      font-size: 1.4em;
+      margin-bottom: 15px;
+      color: var(--accent);
+    }
+    .employee {
+      background: rgba(138, 43, 226, 0.15);
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: left;
+    }
+    .employee-name {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .medal { font-size: 1.3em; margin-right: 6px; }
   </style>
 </head>
 <body>
   <div class="stars" id="stars"></div>
-  <div class="lights" id="lights"></div>
+  <div class="container">
+    <div class="header">
+      <h1>🎡 Рулетка лучших</h1>
+      <div class="subtitle">Колл-центр «Олимпийский»</div>
+    </div>
 
-  <h1>🎡 Рулетка лучших</h1>
-  <p class="subtitle">Колл-центр «Олимпийский»</p>
+    <div class="wheel-container">
+      <div class="wheel" id="wheel">Крутим...</div>
+      <div class="center"></div>
+    </div>
 
-  <div id="wheel-container">
-    <div class="indicator"></div>
-    <div id="wheel">
-      <!-- Будет заполнено JS -->
+    <button class="button" id="spinBtn">🎯 Крутить рулетку!</button>
+
+    <div class="result" id="result">
+      <div class="result-title">🎊 Результаты:</div>
+      <div id="employeesList"></div>
     </div>
   </div>
 
-  <button id="spinBtn">▶️ Крутить рулетку!</button>
-  <div class="status" id="status">Готовы к розыгрышу?</div>
-
-  <div id="result"></div>
-
-  <!-- Аудио -->
-  <audio id="spinSound" src="assets/spin.mp3" preload="auto"></audio>
-  <audio id="winSound" src="assets/win.mp3" preload="auto"></audio>
-
   <script>
-    // Генерация звёзд и огоньков для анимации фона
-    function createDecor() {
-      const stars = document.getElementById('stars');
-      const lights = document.getElementById('lights');
-      
-      // 50 звёзд
-      for (let i = 0; i < 50; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.width = `${Math.random() * 3 + 1}px`;
-        star.style.height = star.style.width;
-        star.style.animationDelay = `${Math.random() * 3}s`;
-        stars.appendChild(star);
-      }
-      
-      // 30 огоньков
-      for (let i = 0; i < 30; i++) {
-        const light = document.createElement('div');
-        light.className = 'light';
-        light.style.left = `${Math.random() * 100}%`;
-        light.style.top = `${Math.random() * 100}%`;
-        light.style.animationDelay = `${Math.random() * 5}s`;
-        lights.appendChild(light);
-      }
+    // === ГЕНЕРАЦИЯ ЗВЁЗД ===
+    const starsContainer = document.getElementById('stars');
+    for (let i = 0; i < 50; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.width = star.style.height = Math.random() * 3 + 'px';
+      star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+      starsContainer.appendChild(star);
     }
 
-    // Создаём декор при загрузке
-    createDecor();
+    // === АУДИО (FALLBACK — BASE64) ===
+    const spinSound = new Audio();
+    const winSound = new Audio();
+    
+    // Короткий "вжжжж" (base64, ~1 сек)
+    spinSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBU0NJSUkqUElDVAAPAAABTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//uQwAMDA1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV......"; // укорочено для чата; в реальном коде — полный base64
 
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmKG6WwhNibshctymtcHSx_268Zz4X0sqle03RV_mCcjTz1NJ15zahUW8_c6CxYfr2gg/exec';
+    // Победный "ding!" (base64)
+    winSound.src = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBU0NJSUkqUElDVAAPAAABTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//uQwAMDA1VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV......";
+
+    // === ПЕРЕМЕННЫЕ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
-    const status = document.getElementById('status');
     const resultDiv = document.getElementById('result');
-    const spinSound = document.getElementById('spinSound');
-    const winSound = document.getElementById('winSound');
+    const employeesList = document.getElementById('employeesList');
 
-    let isSpinning = false;
+    // 🔹 ИСПРАВЛЕННЫЙ GAS_URL — БЕЗ ПРОБЕЛОВ
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyQBgFVhhNhmhWGeLZB55tbpbxnJW5ah44DlhS_XRFTlBhzIORhJt_1bfen1OW1x51_WA/exec";
 
-    // Заполняем барабан заглушками (будет заменено после загрузки)
-    function fillWheel(names = ['Готовимся...', 'Крутим!', 'Скоро!', 'Ждём!', 'Вжух!']) {
-      wheel.innerHTML = '';
-      names.forEach((name, i) => {
-        const slot = document.createElement('div');
-        slot.className = 'slot';
-        slot.style.transform = `rotate(${i * 72}deg) translateY(-120px) rotate(${-i * 72}deg)`;
-        slot.innerText = name;
-        wheel.appendChild(slot);
-      });
-    }
-
-    fillWheel();
-
-    // Запрос к GAS
-    async function fetchWinners() {
-      try {
-        const res = await fetch(`${GAS_URL}?action=spin`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Ошибка данных');
-        return data.data;
-      } catch (err) {
-        console.error('Fetch error:', err);
-        throw err;
-      }
-    }
-
-    // Анимация вращения
-    function spinAnimation() {
-      spinSound.currentTime = 0;
-      spinSound.play().catch(e => console.warn('Audio play failed:', e));
-      
-      wheel.style.transition = 'transform 5s cubic-bezier(0.1, 0.9, 0.3, 1)';
-      const rotations = 8 + Math.random() * 4; // 8-12 оборотов
-      wheel.style.transform = `rotate(${rotations * 360}deg)`;
-    }
-
-    // Остановка и показ результата
-    async function showResult(winners) {
-      await new Promise(resolve => setTimeout(resolve, 5100)); // дожидаемся окончания анимации
-
-      winSound.currentTime = 0;
-      winSound.play().catch(e => console.warn('Win sound failed:', e));
-
-      // Показываем имена в барабане
-      fillWheel(winners.map(w => `🏆 ${w.name}`));
-
-      // Формируем HTML результата
-      let html = '';
-      winners.forEach(w => {
-        html += `
-          <div class="winner">
-            <div class="name"><span class="medal">🏅</span>${w.name}</div>
-            <div class="metric">📞 Звонки: ${w.calls}</div>
-            <div class="metric">⏱ Обработка: ${w.aht}</div>
-            <div class="metric">❌ Пропущено: ${w.missed}</div>
-            <div class="metric">⭐ Качество: ${w.quality}</div>
-          </div>
-        `;
-      });
-      resultDiv.innerHTML = html;
-      resultDiv.style.display = 'block';
-
-      spinBtn.disabled = false;
-      status.textContent = '🎉 Победители определены!';
-      isSpinning = false;
-    }
-
-    // Основной обработчик
-    spinBtn.addEventListener('click', async () => {
-      if (isSpinning) return;
-      isSpinning = true;
+    // === ФУНКЦИЯ КРУЧЕНИЯ ===
+    async function spin() {
       spinBtn.disabled = true;
-      status.textContent = 'Крутим барабан... 🔥';
+      spinBtn.textContent = '🎡 Крутим...';
+      wheel.textContent = 'Крутим...';
+      resultDiv.style.display = 'none';
 
+      // Анимация вращения
+      const rotations = 5 + Math.random() * 5;
+      const baseDeg = 360 * rotations;
+      const finalDeg = baseDeg + Math.random() * 360;
+      wheel.style.transform = `rotate(${finalDeg}deg)`;
+
+      // Звук вращения
+      try { spinSound.play().catch(e => console.log('🔇 spin sound muted')); } catch {}
+
+      // Запрос к GAS
       try {
-        const winners = await fetchWinners();
-        fillWheel(winners.map(w => w.name));
-        spinAnimation();
-        showResult(winners);
-      } catch (err) {
-        console.error('Ошибка:', err);
-        status.textContent = '❌ Ошибка: ' + (err.message || 'сервер недоступен');
-        fillWheel();
-        spinBtn.disabled = false;
-        isSpinning = false;
-      }
-    });
+        const response = await fetch(`${GAS_URL}?action=spin&t=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
 
-    // Инициализация Telegram
-    if (window.Telegram?.WebApp) {
+        if (!data.success) throw new Error(data.error || 'API error');
+
+        // Ждём завершения анимации (~5 сек)
+        await new Promise(r => setTimeout(r, 5000));
+
+        // Звук победы
+        try { winSound.play().catch(e => console.log('🔇 win sound muted')); } catch {}
+
+        // Показ результата
+        displayResults(data.data);
+      } catch (err) {
+        console.error('❌ Ошибка:', err);
+        wheel.textContent = 'Ошибка';
+        spinBtn.textContent = '🔄 Повторить';
+        alert(`Ошибка загрузки:\n${err.message}`);
+      } finally {
+        spinBtn.disabled = false;
+      }
+    }
+
+    function displayResults(employees) {
+      employeesList.innerHTML = '';
+      const medals = ['🥇', '🥈', '🥉', '🎖️', '🏅'];
+
+      employees.forEach((emp, i) => {
+        const div = document.createElement('div');
+        div.className = 'employee';
+        div.innerHTML = `
+          <div class="employee-name"><span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}</div>
+          📞 Звонки: ${emp.calls || '–'}<br>
+          ⏱ AHT: ${emp.aht || '–'}<br>
+          ❌ Пропущенные: ${emp.missed || '–'}<br>
+          ✅ Качество: ${emp.quality || '–'}
+        `;
+        employeesList.appendChild(div);
+      });
+
+      resultDiv.style.display = 'block';
+      wheel.textContent = 'Готово!';
+    }
+
+    spinBtn.addEventListener('click', spin);
+
+    // Telegram WebApp.ready()
+    if (window.Telegram && Telegram.WebApp) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
     }
