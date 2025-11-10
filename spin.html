@@ -79,24 +79,9 @@
       font-weight: bold;
       font-size: 1.5em;
     }
+    /* УБРАН ЦЕНТР С ПРИЦЕЛОМ */
     .center {
-      width: 60px;
-      height: 60px;
-      background: #ffd700;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-    }
-    .center::after {
-      content: '🎯';
-      font-size: 24px;
+      display: none; /* 👈 ВЫКЛЮЧЕН */
     }
     .button {
       background: linear-gradient(to right, var(--primary), #6a0dad);
@@ -155,6 +140,7 @@
       border-radius: 12px;
       font-size: 0.8em;
       margin-left: 6px;
+      display: none; /* 👈 Скрыт по умолчанию */
     }
   </style>
 </head>
@@ -167,7 +153,8 @@
 
     <div class="wheel-container">
       <div class="wheel" id="wheel">Готово!</div>
-      <div class="center"></div>
+      <!-- УБРАН ПРИЦЕЛ -->
+      <!-- <div class="center"></div> -->
     </div>
 
     <button class="button" id="spinBtn">🎯 Крутить рулетку!</button>
@@ -263,8 +250,15 @@
       employees.slice(0, 5).forEach((emp, i) => {
         const div = document.createElement('div');
         div.className = 'employee';
+        
+        // Создаём имя с медалью
         let nameLine = `<span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}`;
-        if (isDemo) nameLine += ` <span class="fallback-badge">ДЕМО</span>`;
+        
+        // Если это демо-режим — добавляем значок "ДЕМО"
+        if (isDemo) {
+          nameLine += ` <span class="fallback-badge" style="display: inline;">ДЕМО</span>`;
+        }
+        
         div.innerHTML = `
           <div class="employee-name">${nameLine}</div>
           📞 Звонки: ${emp.calls || '–'}<br>
