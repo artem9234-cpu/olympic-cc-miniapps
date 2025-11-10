@@ -2,59 +2,51 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🎡 Рулетка лучших</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --primary: #8a2be2; /* фиолетовый */
-      --secondary: #f5f5dc; /* бежевый */
-      --accent: #87ceeb; /* голубой */
+      --primary: #8a2be2;
+      --accent: #87ceeb;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
       color: white;
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      text-align: center;
-      padding: 10px;
-    }
-    .container {
-      position: relative;
-      width: 100%;
-      max-width: 500px;
-      padding: 15px;
-      z-index: 2;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px;
     }
     .header {
-      margin-bottom: 10px;
+      text-align: center;
+      margin: 10px 0 16px;
+      width: 100%;
     }
     h1 {
-      font-size: 2em;
-      margin: 5px 0;
+      font-size: 1.8em;
+      margin: 6px 0;
       background: linear-gradient(to right, var(--primary), var(--accent));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      font-weight: 800;
     }
     .subtitle {
-      font-size: 0.9em;
-      opacity: 0.8;
-      margin-bottom: 15px;
+      font-size: 0.95em;
+      opacity: 0.85;
+      margin-top: 4px;
     }
     .wheel-container {
       position: relative;
       width: 100%;
-      max-width: 300px;
-      height: auto;
-      margin: 0 auto 20px;
+      max-width: 280px;
       aspect-ratio: 1 / 1;
+      margin: 0 auto 20px;
     }
     .wheel {
       width: 100%;
@@ -74,109 +66,114 @@
         #cfd9df 300deg, #e6ee9c 330deg,
         #ffecd2 330deg, #fcb69f 360deg
       );
-      box-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
+      box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
       transition: transform 5s cubic-bezier(0.23, 1, 0.32, 1);
       display: flex;
       justify-content: center;
       align-items: center;
       color: white;
       font-weight: bold;
-      font-size: 1.5em;
-    }
-    .center {
-      display: none; /* 👈 Прицел убран */
+      font-size: 1.3em;
+      user-select: none;
     }
     .button {
-      background: linear-gradient(to right, var(--primary), #6a0dad);
+      background: linear-gradient(to right, var(--primary), #5d0ca8);
       color: white;
       border: none;
-      padding: 12px 24px;
-      font-size: 1.1em;
-      font-weight: bold;
+      padding: 13px 0;
+      font-size: 1.15em;
+      font-weight: 600;
       border-radius: 50px;
       cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
-      z-index: 2;
-      position: relative;
-      width: 80%;
+      width: 90%;
       max-width: 300px;
-      margin: 0 auto 20px;
+      box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
+      margin: 20px 0;
     }
-    .button:hover:not(:disabled) {
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(138, 43, 226, 0.6);
+    .button:active {
+      transform: scale(0.98);
     }
     .button:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
     }
     .result {
-      margin-top: 15px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 15px;
-      backdrop-filter: blur(10px);
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 10px;
+      backdrop-filter: blur(8px);
       border: 1px solid rgba(255,255,255,0.1);
       display: none;
-      max-height: 300px;
+      max-height: 280px;
       overflow-y: auto;
-      width: 100%;
     }
     .result-title {
-      font-size: 1.2em;
-      margin-bottom: 10px;
+      font-size: 1.25em;
+      margin-bottom: 12px;
       color: var(--accent);
+      text-align: center;
     }
     .employee {
-      background: rgba(138, 43, 226, 0.15);
+      background: rgba(138, 43, 226, 0.12);
+      padding: 11px;
       margin: 8px 0;
-      padding: 10px;
-      border-radius: 8px;
+      border-radius: 10px;
       text-align: left;
     }
     .employee-name {
-      font-weight: bold;
-      font-size: 1.1em;
+      font-weight: 600;
+      font-size: 1.05em;
     }
-    .medal { font-size: 1.3em; margin-right: 6px; }
+    .medal { font-size: 1.25em; margin-right: 5px; }
+    .status {
+      font-size: 0.9em;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🎡 Рулетка лучших</h1>
-      <div class="subtitle">Колл-центр «Олимпийский»</div>
-    </div>
+  <div class="header">
+    <h1>🎡 Рулетка лучших</h1>
+    <div class="subtitle">Колл-центр «Олимпийский»</div>
+  </div>
 
-    <div class="wheel-container">
-      <div class="wheel" id="wheel">Готово!</div>
-      <!-- Прицел убран -->
-    </div>
+  <div class="wheel-container">
+    <div class="wheel" id="wheel">Готово!</div>
+  </div>
 
-    <button class="button" id="spinBtn">🎯 Крутить рулетку!</button>
+  <button class="button" id="spinBtn">🎯 Крутить рулетку</button>
 
-    <div class="result" id="result">
-      <div class="result-title">🎊 Результаты:</div>
-      <div id="employeesList"></div>
-    </div>
+  <div class="result" id="result">
+    <div class="result-title">🎊 Результаты:</div>
+    <div id="employeesList"></div>
   </div>
 
   <script>
-    // === АУДИО (BASE64 — короткие фолбэки) ===
-    const spinSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLnBocD9pZD0xMDYyMzEAAAAAAAAAAAAAAAAAAA==");
-    const winSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLnBocD9pZD0xMTY3MzUAAAAAAAAAAAAAAAAAAA==");
+    // === BASE64 ЗВУКИ (без файлов) ===
+    const spinSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLmh0bWwAAAAAAAAAAAAAAAAA");
+    const winSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLmh0bWwAAAAAAAAAAAAAAAAA");
 
     // === URL (БЕЗ ПРОБЕЛОВ!) ===
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwnPNDUn_ES-nH6B_FA1MSUJezpoXuJZdmYcCBmWjPccPkjrmXtn6-lkTlpRvqEg6QcVw/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec";
 
-    // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
     const resultDiv = document.getElementById('result');
     const employeesList = document.getElementById('employeesList');
 
-    // === ФУНКЦИЯ КРУЧЕНИЯ ===
+    // === ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP ===
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      Telegram.WebApp.setHeaderColor('#1a1a2e');
+      Telegram.WebApp.setBackgroundColor('#0f3460');
+    }
+
+    // === ОСНОВНАЯ ЛОГИКА ===
     async function spin() {
       spinBtn.disabled = true;
       spinBtn.textContent = '🎡 Крутим...';
@@ -184,40 +181,49 @@
       resultDiv.style.display = 'none';
 
       // Анимация вращения
-      const rotations = 5 + Math.random() * 5;
-      const finalDeg = 360 * rotations + Math.random() * 360;
+      const rotations = 5 + Math.random() * 3;
+      const finalDeg = 360 * rotations + Math.floor(Math.random() * 360);
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-      // Звук вращения (игнорируем ошибки)
+      // Звук вращения
       try { spinSound.play(); } catch {}
 
       let data = null;
 
       try {
-        // 👇 Добавляем заголовок User-Agent, чтобы обойти некоторые блокировки
+        // 1️⃣ Попытка запроса к GAS (основной путь)
         const response = await fetch(`${GAS_URL}?action=spin&t=${Date.now()}`, {
           method: 'GET',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          }
+          headers: { 'User-Agent': 'Mozilla/5.0' }
         });
 
-        // Проверяем, не HTML ли это («Google 文件」 — это HTML!)
+        // Если пришёл HTML («NTA блокировка») — пробуем fallback
         const text = await response.text();
-        if (text.includes('Google 文件') || text.includes('<html')) {
-          throw new Error('GAS вернул HTML — возможно, блокировка');
+        if (text.includes('Nepal Telecommunication Authority') || text.includes('<html')) {
+          throw new Error('Blocked by NTA');
         }
 
         data = JSON.parse(text);
         if (!data.success) throw new Error(data.error || 'API error');
 
       } catch (err) {
-        console.warn('⚠️ Основной запрос упал:', err.message);
-        // Вместо демо — показываем сообщение об ошибке
-        alert('❌ Не удалось загрузить данные. Попробуйте позже.');
-        spinBtn.disabled = false;
-        spinBtn.textContent = '🎯 Крутить снова!';
-        return;
+        console.warn('⚠️ Основной запрос заблокирован или упал:', err.message);
+
+        // 2️⃣ FALLBACK: прямой запрос к GitHub Pages (статические данные)
+        try {
+          const fallbackResponse = await fetch('https://artem9234-cpu.github.io/olympic-cc-miniapps/fallback.json?t=' + Date.now());
+          if (fallbackResponse.ok) {
+            data = await fallbackResponse.json();
+          } else {
+            throw new Error('Fallback недоступен');
+          }
+        } catch (fallbackErr) {
+          // 3️⃣ Крайний fallback: показать заглушку
+          alert('⚠️ Данные временно недоступны.\nПопробуйте через Telegram Desktop.');
+          spinBtn.disabled = false;
+          spinBtn.textContent = '🎯 Крутить снова';
+          return;
+        }
       }
 
       // Ждём завершения анимации
@@ -226,10 +232,10 @@
       // Звук победы
       try { winSound.play(); } catch {}
 
-      // Показываем результат
-      displayResults(data.data);
+      // Показ результата
+      displayResults(data.data || []);
       spinBtn.disabled = false;
-      spinBtn.textContent = '🎯 Крутить снова!';
+      spinBtn.textContent = '🎯 Крутить снова';
     }
 
     function displayResults(employees) {
@@ -256,35 +262,17 @@
 
     spinBtn.addEventListener('click', spin);
 
-    // Telegram WebApp — автоматически расширяем на весь экран
-    if (window.Telegram?.WebApp) {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand(); // 👈 Расширяет окно на весь экран
-      Telegram.WebApp.setHeaderColor('#1a1a2e'); // Устанавливаем цвет заголовка под фон
-    }
-
-    // Адаптация под высоту экрана
-    function resizeWheel() {
-      const container = document.querySelector('.wheel-container');
-      const button = document.querySelector('.button');
-      const result = document.querySelector('.result');
-      
-      // Уменьшаем размер колеса для маленьких экранов
-      if (window.innerWidth < 400) {
-        container.style.maxWidth = '250px';
-        container.style.height = 'auto';
-        button.style.fontSize = '1em';
-        button.style.padding = '10px 20px';
+    // Адаптация под маленькие экраны
+    function adjustLayout() {
+      const h1 = document.querySelector('h1');
+      if (window.innerWidth < 360) {
+        h1.style.fontSize = '1.5em';
       } else {
-        container.style.maxWidth = '300px';
-        container.style.height = 'auto';
-        button.style.fontSize = '1.1em';
-        button.style.padding = '12px 24px';
+        h1.style.fontSize = '1.8em';
       }
     }
-
-    window.addEventListener('resize', resizeWheel);
-    resizeWheel(); // Вызываем при загрузке
+    window.addEventListener('resize', adjustLayout);
+    adjustLayout();
   </script>
 </body>
 </html>
