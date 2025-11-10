@@ -3,149 +3,344 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Рулетка лучших</title>
+  <title>🎡 Рулетка лучших</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    :root {
+      --primary: #8A2BE2; /* фиолетовый */
+      --accent: #87CEFA;  /* голубой */
+      --bg: #0f0c29;
+      --gold: #FFD700;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f5f7fb;
-      padding: 20px;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 16px;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Огоньки по краям */
+    .lights {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .light {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent), 0 0 24px var(--gold);
+      animation: twinkle 3s infinite ease-in-out;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    h1 {
       text-align: center;
+      font-size: 28px;
+      margin: 20px 0 10px;
+      text-shadow: 0 0 10px var(--gold), 0 0 20px var(--accent);
+      font-weight: 800;
     }
-    h2 {
-      color: #2d3e50;
-      margin: 20px 0 30px;
+    .subtitle {
+      text-align: center;
+      color: #ccc;
+      font-size: 14px;
+      margin-bottom: 20px;
     }
-    #wheel {
+
+    /* Барабан рулетки */
+    #wheel-container {
+      position: relative;
       width: 280px;
       height: 280px;
-      margin: 0 auto 30px;
-      position: relative;
+      margin: 0 auto 24px;
       border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       overflow: hidden;
+      box-shadow: 
+        0 0 0 4px rgba(255,215,0,0.3),
+        0 0 20px rgba(135,206,250,0.6),
+        inset 0 0 12px rgba(0,0,0,0.8);
     }
-    .spinner {
+    #wheel {
+      width: 100%; height: 100%;
+      position: relative;
+      transition: transform 4s cubic-bezier(0.2, 0.8, 0.3, 1);
+      background: rgba(15, 12, 41, 0.9);
+    }
+    .slot {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
+      width: 100%; height: 20%;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      font-size: 16px;
-      color: #666;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
+    .slot:nth-child(odd) { background: rgba(138, 43, 226, 0.3); }
+    .slot:nth-child(even) { background: rgba(135, 206, 250, 0.2); }
+
+    /* Индикатор "STOP" */
+    .indicator {
+      position: absolute;
+      top: -20px; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 24px solid var(--gold);
+      z-index: 10;
+    }
+    .indicator::after {
+      content: '⏹';
+      position: absolute;
+      top: 8px; left: -6px;
+      font-size: 12px;
+    }
+
+    /* Результат */
     #result {
       display: none;
-      background: white;
-      border-radius: 12px;
+      background: rgba(25, 20, 60, 0.85);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
       padding: 20px;
       margin: 20px auto;
       max-width: 400px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
     }
-    .person {
-      text-align: left;
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
+    .winner {
+      text-align: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    .person:last-child { border: none; }
-    .name { font-weight: bold; color: #2d3e50; }
-    .metric { font-size: 14px; color: #666; margin-top: 4px; }
+    .winner:last-child { border: none; }
+    .name {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .medal { font-size: 18px; margin-right: 6px; }
+    .metric {
+      font-size: 13px;
+      color: #ddd;
+      margin: 3px 0;
+    }
+
+    /* Кнопка */
     button {
-      background: #50a8eb;
+      background: linear-gradient(45deg, var(--primary), #6a0dad);
       color: white;
       border: none;
-      padding: 14px 28px;
+      padding: 16px 32px;
       font-size: 18px;
-      border-radius: 10px;
+      font-weight: bold;
+      border-radius: 50px;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
+      transition: all 0.2s;
       margin-top: 10px;
     }
-    button:disabled { opacity: 0.6; }
-    .loading { color: #888; font-size: 14px; margin-top: 10px; }
+    button:hover:not(:disabled) {
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(138, 43, 226, 0.6);
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    .status {
+      color: #aaa;
+      font-size: 14px;
+      margin-top: 12px;
+      min-height: 20px;
+    }
+
+    /* Звёзды позади */
+    .stars {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: -2;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite alternate;
+    }
+    @keyframes pulse {
+      from { opacity: 0.2; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1.1); }
+    }
   </style>
 </head>
 <body>
-  <h2>🎡 Рулетка лучших</h2>
-  
-  <div id="wheel">
-    <div class="spinner">Загружаем данные...</div>
+  <div class="stars" id="stars"></div>
+  <div class="lights" id="lights"></div>
+
+  <h1>🎡 Рулетка лучших</h1>
+  <p class="subtitle">Колл-центр «Олимпийский»</p>
+
+  <div id="wheel-container">
+    <div class="indicator"></div>
+    <div id="wheel">
+      <!-- Будет заполнено JS -->
+    </div>
   </div>
 
-  <button id="spinBtn">🔄 Крутить рулетку</button>
-  <div id="status" class="loading"></div>
+  <button id="spinBtn">▶️ Крутить рулетку!</button>
+  <div class="status" id="status">Готовы к розыгрышу?</div>
 
   <div id="result"></div>
 
+  <!-- Аудио -->
+  <audio id="spinSound" src="assets/spin.mp3" preload="auto"></audio>
+  <audio id="winSound" src="assets/win.mp3" preload="auto"></audio>
+
   <script>
+    // Генерация звёзд и огоньков для анимации фона
+    function createDecor() {
+      const stars = document.getElementById('stars');
+      const lights = document.getElementById('lights');
+      
+      // 50 звёзд
+      for (let i = 0; i < 50; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.width = `${Math.random() * 3 + 1}px`;
+        star.style.height = star.style.width;
+        star.style.animationDelay = `${Math.random() * 3}s`;
+        stars.appendChild(star);
+      }
+      
+      // 30 огоньков
+      for (let i = 0; i < 30; i++) {
+        const light = document.createElement('div');
+        light.className = 'light';
+        light.style.left = `${Math.random() * 100}%`;
+        light.style.top = `${Math.random() * 100}%`;
+        light.style.animationDelay = `${Math.random() * 5}s`;
+        lights.appendChild(light);
+      }
+    }
+
+    // Создаём декор при загрузке
+    createDecor();
+
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbyQBgFVhhNhmhWGeLZB55tbpbxnJW5ah44DlhS_XRFTlBhzIORhJt_1bfen1OW1x51_WA/exec';
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
     const status = document.getElementById('status');
     const resultDiv = document.getElementById('result');
+    const spinSound = document.getElementById('spinSound');
+    const winSound = document.getElementById('winSound');
 
-    // Простая анимация вращения
+    let isSpinning = false;
+
+    // Заполняем барабан заглушками (будет заменено после загрузки)
+    function fillWheel(names = ['Готовимся...', 'Крутим!', 'Скоро!', 'Ждём!', 'Вжух!']) {
+      wheel.innerHTML = '';
+      names.forEach((name, i) => {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.style.transform = `rotate(${i * 72}deg) translateY(-120px) rotate(${-i * 72}deg)`;
+        slot.innerText = name;
+        wheel.appendChild(slot);
+      });
+    }
+
+    fillWheel();
+
+    // Запрос к GAS
+    async function fetchWinners() {
+      try {
+        const res = await fetch(`${GAS_URL}?action=spin`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Ошибка данных');
+        return data.data;
+      } catch (err) {
+        console.error('Fetch error:', err);
+        throw err;
+      }
+    }
+
+    // Анимация вращения
     function spinAnimation() {
-      wheel.innerHTML = `<div class="spinner">Крутим...<br>Ждите 🌀</div>`;
-      wheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.4, 1)';
-      const rotations = 5 + Math.random() * 3;
+      spinSound.currentTime = 0;
+      spinSound.play().catch(e => console.warn('Audio play failed:', e));
+      
+      wheel.style.transition = 'transform 5s cubic-bezier(0.1, 0.9, 0.3, 1)';
+      const rotations = 8 + Math.random() * 4; // 8-12 оборотов
       wheel.style.transform = `rotate(${rotations * 360}deg)`;
     }
 
     // Остановка и показ результата
-    function showResult(data) {
-      setTimeout(() => {
-        wheel.style.transition = 'none';
-        wheel.style.transform = 'rotate(0deg)';
-        wheel.innerHTML = `<div class="spinner">✅ Готово!</div>`;
-        
-        let html = '';
-        data.forEach(item => {
-          html += `
-            <div class="person">
-              <div class="name">👤 ${item.name}</div>
-              <div class="metric">📞 Звонки: ${item.calls}</div>
-              <div class="metric">⏱ Обработка: ${item.aht}</div>
-              <div class="metric">❌ Пропущено: ${item.missed}</div>
-              <div class="metric">⭐ Качество: ${item.quality}</div>
-            </div>
-          `;
-        });
-        resultDiv.innerHTML = html;
-        resultDiv.style.display = 'block';
-        spinBtn.disabled = false;
-      }, 3100);
+    async function showResult(winners) {
+      await new Promise(resolve => setTimeout(resolve, 5100)); // дожидаемся окончания анимации
+
+      winSound.currentTime = 0;
+      winSound.play().catch(e => console.warn('Win sound failed:', e));
+
+      // Показываем имена в барабане
+      fillWheel(winners.map(w => `🏆 ${w.name}`));
+
+      // Формируем HTML результата
+      let html = '';
+      winners.forEach(w => {
+        html += `
+          <div class="winner">
+            <div class="name"><span class="medal">🏅</span>${w.name}</div>
+            <div class="metric">📞 Звонки: ${w.calls}</div>
+            <div class="metric">⏱ Обработка: ${w.aht}</div>
+            <div class="metric">❌ Пропущено: ${w.missed}</div>
+            <div class="metric">⭐ Качество: ${w.quality}</div>
+          </div>
+        `;
+      });
+      resultDiv.innerHTML = html;
+      resultDiv.style.display = 'block';
+
+      spinBtn.disabled = false;
+      status.textContent = '🎉 Победители определены!';
+      isSpinning = false;
     }
 
+    // Основной обработчик
     spinBtn.addEventListener('click', async () => {
+      if (isSpinning) return;
+      isSpinning = true;
       spinBtn.disabled = true;
-      status.textContent = 'Запрашиваем данные...';
+      status.textContent = 'Крутим барабан... 🔥';
 
       try {
+        const winners = await fetchWinners();
+        fillWheel(winners.map(w => w.name));
         spinAnimation();
-
-        const res = await fetch(`${GAS_URL}?action=spin`);
-        const json = await res.json();
-
-        if (json.success) {
-          status.textContent = 'Обрабатываем...';
-          showResult(json.data);
-        } else {
-          throw new Error(json.error || 'Ошибка сервера');
-        }
+        showResult(winners);
       } catch (err) {
-        console.error(err);
-        status.textContent = '❌ Ошибка: ' + (err.message || 'нет связи');
+        console.error('Ошибка:', err);
+        status.textContent = '❌ Ошибка: ' + (err.message || 'сервер недоступен');
+        fillWheel();
         spinBtn.disabled = false;
-        wheel.innerHTML = `<div class="spinner">⚠️ Ошибка</div>`;
-        wheel.style.transform = 'rotate(0deg)';
+        isSpinning = false;
       }
     });
 
-    // Инициализация Telegram WebApp
+    // Инициализация Telegram
     if (window.Telegram?.WebApp) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
