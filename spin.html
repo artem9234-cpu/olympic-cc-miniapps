@@ -17,25 +17,26 @@
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: white;
       min-height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       text-align: center;
+      padding: 10px;
     }
     .container {
       position: relative;
       width: 100%;
       max-width: 500px;
-      padding: 20px;
+      padding: 15px;
       z-index: 2;
     }
     .header {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
     h1 {
-      font-size: 2.2em;
-      margin: 10px 0;
+      font-size: 2em;
+      margin: 5px 0;
       background: linear-gradient(to right, var(--primary), var(--accent));
       -webkit-background-clip: text;
       background-clip: text;
@@ -43,14 +44,17 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     .subtitle {
-      font-size: 1.1em;
+      font-size: 0.9em;
       opacity: 0.8;
+      margin-bottom: 15px;
     }
     .wheel-container {
       position: relative;
-      width: 300px;
-      height: 300px;
-      margin: 0 auto 30px;
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      margin: 0 auto 20px;
+      aspect-ratio: 1 / 1;
     }
     .wheel {
       width: 100%;
@@ -79,16 +83,15 @@
       font-weight: bold;
       font-size: 1.5em;
     }
-    /* УБРАН ЦЕНТР С ПРИЦЕЛОМ */
     .center {
-      display: none; /* 👈 ВЫКЛЮЧЕН */
+      display: none; /* 👈 Прицел убран */
     }
     .button {
       background: linear-gradient(to right, var(--primary), #6a0dad);
       color: white;
       border: none;
-      padding: 14px 32px;
-      font-size: 1.2em;
+      padding: 12px 24px;
+      font-size: 1.1em;
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
@@ -96,6 +99,9 @@
       box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
       z-index: 2;
       position: relative;
+      width: 80%;
+      max-width: 300px;
+      margin: 0 auto 20px;
     }
     .button:hover:not(:disabled) {
       transform: scale(1.05);
@@ -106,26 +112,27 @@
       cursor: not-allowed;
     }
     .result {
-      margin-top: 30px;
+      margin-top: 15px;
       background: rgba(255,255,255,0.08);
       border-radius: 16px;
-      padding: 20px;
+      padding: 15px;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.1);
       display: none;
       max-height: 300px;
       overflow-y: auto;
+      width: 100%;
     }
     .result-title {
-      font-size: 1.4em;
-      margin-bottom: 15px;
+      font-size: 1.2em;
+      margin-bottom: 10px;
       color: var(--accent);
     }
     .employee {
       background: rgba(138, 43, 226, 0.15);
-      margin: 10px 0;
-      padding: 12px;
-      border-radius: 10px;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
       text-align: left;
     }
     .employee-name {
@@ -133,15 +140,6 @@
       font-size: 1.1em;
     }
     .medal { font-size: 1.3em; margin-right: 6px; }
-    .fallback-badge {
-      background: #d32f2f;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.8em;
-      margin-left: 6px;
-      display: none; /* 👈 Скрыт по умолчанию */
-    }
   </style>
 </head>
 <body>
@@ -153,8 +151,7 @@
 
     <div class="wheel-container">
       <div class="wheel" id="wheel">Готово!</div>
-      <!-- УБРАН ПРИЦЕЛ -->
-      <!-- <div class="center"></div> -->
+      <!-- Прицел убран -->
     </div>
 
     <button class="button" id="spinBtn">🎯 Крутить рулетку!</button>
@@ -166,15 +163,6 @@
   </div>
 
   <script>
-    // === FALLBACK ДАННЫЕ (демо-режим) ===
-    const DEMO_DATA = [
-      {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
-      {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
-      {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
-      {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
-      {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
-    ];
-
     // === АУДИО (BASE64 — короткие фолбэки) ===
     const spinSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLnBocD9pZD0xMDYyMzEAAAAAAAAAAAAAAAAAAA==");
     const winSound = new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGlua3MgLSBGcmVlIFNvdW5kIEVmZmVjdHMAAAAAAAAAAAAAAAAAAAAA//uQxAADwAABp3ZhQVBBVVMgTElDZW5zZSBodHRwOi8vbGljZW5zZS5iaWdzb3VuZGJhbmsuY29tL3B1YmxpYy9zdGFuZGFyZC1saWNlbnNlLnBocD9pZD0xMTY3MzUAAAAAAAAAAAAAAAAAAA==");
@@ -204,7 +192,6 @@
       try { spinSound.play(); } catch {}
 
       let data = null;
-      let isDemo = false;
 
       try {
         // 👇 Добавляем заголовок User-Agent, чтобы обойти некоторые блокировки
@@ -226,9 +213,11 @@
 
       } catch (err) {
         console.warn('⚠️ Основной запрос упал:', err.message);
-        // Переключаемся в демо-режим
-        data = { success: true, data: DEMO_DATA };
-        isDemo = true;
+        // Вместо демо — показываем сообщение об ошибке
+        alert('❌ Не удалось загрузить данные. Попробуйте позже.');
+        spinBtn.disabled = false;
+        spinBtn.textContent = '🎯 Крутить снова!';
+        return;
       }
 
       // Ждём завершения анимации
@@ -238,27 +227,19 @@
       try { winSound.play(); } catch {}
 
       // Показываем результат
-      displayResults(data.data, isDemo);
+      displayResults(data.data);
       spinBtn.disabled = false;
       spinBtn.textContent = '🎯 Крутить снова!';
     }
 
-    function displayResults(employees, isDemo = false) {
+    function displayResults(employees) {
       employeesList.innerHTML = '';
       const medals = ['🥇', '🥈', '🥉', '🎖️', '🏅'];
 
       employees.slice(0, 5).forEach((emp, i) => {
         const div = document.createElement('div');
         div.className = 'employee';
-        
-        // Создаём имя с медалью
-        let nameLine = `<span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}`;
-        
-        // Если это демо-режим — добавляем значок "ДЕМО"
-        if (isDemo) {
-          nameLine += ` <span class="fallback-badge" style="display: inline;">ДЕМО</span>`;
-        }
-        
+        const nameLine = `<span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}`;
         div.innerHTML = `
           <div class="employee-name">${nameLine}</div>
           📞 Звонки: ${emp.calls || '–'}<br>
@@ -275,11 +256,35 @@
 
     spinBtn.addEventListener('click', spin);
 
-    // Telegram WebApp
+    // Telegram WebApp — автоматически расширяем на весь экран
     if (window.Telegram?.WebApp) {
       Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
+      Telegram.WebApp.expand(); // 👈 Расширяет окно на весь экран
+      Telegram.WebApp.setHeaderColor('#1a1a2e'); // Устанавливаем цвет заголовка под фон
     }
+
+    // Адаптация под высоту экрана
+    function resizeWheel() {
+      const container = document.querySelector('.wheel-container');
+      const button = document.querySelector('.button');
+      const result = document.querySelector('.result');
+      
+      // Уменьшаем размер колеса для маленьких экранов
+      if (window.innerWidth < 400) {
+        container.style.maxWidth = '250px';
+        container.style.height = 'auto';
+        button.style.fontSize = '1em';
+        button.style.padding = '10px 20px';
+      } else {
+        container.style.maxWidth = '300px';
+        container.style.height = 'auto';
+        button.style.fontSize = '1.1em';
+        button.style.padding = '12px 24px';
+      }
+    }
+
+    window.addEventListener('resize', resizeWheel);
+    resizeWheel(); // Вызываем при загрузке
   </script>
 </body>
 </html>
