@@ -39,15 +39,14 @@
       50% { opacity: 1; transform: scale(1.2); }
     }
     /* === ОСНОВНОЙ КОНТЕЙНЕР — ПОТОКОВЫЙ === */
-    .container {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 500px;
-      padding: 20px 20px calc(var(--tg-safe-area-inset-bottom, 20px) + 20px);
-      margin-top: calc(var(--tg-safe-area-inset-top, 10px) + 10px);
-      margin-inline: auto;
-    }
+.container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  /* Убраны flex свойства и динамические высоты */
+}
     .header h1 {
       font-size: 1.8em;
       font-weight: 800;
@@ -141,18 +140,18 @@
       transform: none;
     }
     /* === БЛОК РЕЗУЛЬТАТОВ — ПОЯВЛЯЕТСЯ ПОД КНОПКОЙ === */
-    .result {
-      margin: 25px auto 0;
-      background: rgba(255,255,255,0.07);
-      border-radius: 16px;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-      display: none;
-      max-height: 320px;
-      overflow-y: auto;
-      width: calc(100% - 40px);
-    }
+.result {
+  margin-top: 30px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: none;
+  max-height: 320px;
+  overflow-y: auto;
+  width: 100%;
+}
     .result-title {
       font-size: 1.4em;
       margin-bottom: 15px;
@@ -246,20 +245,23 @@
     // === API (БЕЗ ПРОБЕЛОВ!) ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
-    // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
-    function adjustLayout() {
-      if (window.Telegram?.WebApp) {
-        const tg = Telegram.WebApp;
-        const top = tg.safeArea?.top || 0;
-        const bottom = tg.safeArea?.bottom || 0;
-        document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
-        document.documentElement.style.setProperty('--tg-safe-area-inset-bottom', `${bottom}px`);
-        if (container) {
-          const usableHeight = tg.viewportHeight - top - bottom;
-          container.style.maxHeight = `${usableHeight - 200}px`;
-        }
-      }
-    }
+    // === АДАПТАЦИЯ ПОД TELEGRAM INSETS (упрощённая) ===
+function adjustLayout() {
+  if (window.Telegram?.WebApp) {
+    const tg = Telegram.WebApp;
+    
+    // Просто проверяем, есть ли safeArea — и игнорируем, если нет
+    const top = tg.safeArea?.top || 0;
+    const bottom = tg.safeArea?.bottom || 0;
+    
+    // Устанавливаем CSS-переменные (для совместимости)
+    document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
+    document.documentElement.style.setProperty('--tg-safe-area-inset-bottom', `${bottom}px`);
+    
+    // НЕ меняем maxHeight — оставляем стандартный поток
+    // Это предотвращает сжатие/растягивание контента
+  }
+}
     // === КРУЧЕНИЕ ===
     async function spin() {
       unlockAudio();
