@@ -301,6 +301,28 @@
       }
     }
 
+    // === АУДИО ===
+    const spinAudio = new Audio('assets/spin.mp3');
+    const winAudio = new Audio('assets/win.mp3');
+    spinAudio.preload = 'auto';
+    winAudio.preload = 'auto';
+
+    // === РАЗБЛОКИРОВКА АУДИО (для iOS/Android) ===
+    let audioUnlocked = false;
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      try {
+        spinAudio.play().catch(() => {});
+        winAudio.play().catch(() => {});
+        spinAudio.pause();
+        winAudio.pause();
+        audioUnlocked = true;
+        console.log('🔊 Аудио разблокировано');
+      } catch (e) {
+        console.warn('🔇 Не удалось разблокировать аудио:', e);
+      }
+    }
+
     // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
@@ -308,8 +330,9 @@
     const employeesList = document.getElementById('employeesList');
     const container = document.getElementById('mainContainer');
 
-    // === API ===
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwEFgXHtp2YcTTbSDABF1GpJBiaWjOuGx_6t2cLsFpHNVPuvafndg__NOmEOG0u7OFBvA/exec';
+    // === API и Fallback ===
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwEFgXHtp2YcTTbSDABF1GpJBiaWjOuGx_6t2cLsFpHNVPuvafndg__NOmEOG0u7OFBvA/exec?action=spin';
+    const FALLBACK_URL = 'https://artem9234-cpu.github.io/olympic-cc-miniapps/fallback.json';
 
     // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
     function adjustLayout() {
@@ -328,85 +351,78 @@
 
     // === КРУЧЕНИЕ ===
     async function spin() {
+      unlockAudio();
+
       spinBtn.disabled = true;
       spinBtn.textContent = 'Крутим...';
       resultDiv.style.display = 'none';
 
+      try {
+        spinAudio.currentTime = 0;
+        spinAudio.play();
+      } catch (e) { console.warn('🔇 spinAudio:', e); }
+
       const rotations = 8 + Math.floor(Math.random() * 5);
       const sector = Math.floor(Math.random() * 5) * 72;
       const finalDeg = 360 * rotations + sector;
-      const spinDuration = 4000; // Укоротил анимацию для тестирования
+      const spinDuration = 12000 + Math.random() * 6000;
 
       wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
       let data = null;
+      let isFallback = false;
+
       try {
-        console.log('🔄 Запрос к API...');
-        
-        // Добавляем timestamp для избежания кеширования
-        const url = API_URL + '?t=' + Date.now();
-        
-        const res = await fetch(url, {
-          method: 'GET',
-          mode: 'no-cors', // Важно для Google Apps Script
-          headers: { 
-            'Accept': 'application/json'
-          }
+        const res = await fetch(API_URL, {
+          headers: { 'Accept': 'application/json' }
         });
-        
-        console.log('📊 Статус ответа:', res.status);
-        
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        
         const txt = await res.text();
-        console.log('📄 Ответ API:', txt);
         
-        // Проверяем, не является ли ответ HTML страницей
-        if (txt.includes('<html') || txt.includes('<!DOCTYPE') || txt.trim().startsWith('<')) {
-          throw new Error('API требует авторизации. Настройте доступ к скрипту.');
+        // Если ответ содержит HTML или NTA — используем fallback
+        if (txt.includes('<html') || txt.includes('NTA') || txt.includes('नेपाल') || !res.ok) {
+          throw new Error('blocked');
         }
         
         data = JSON.parse(txt);
-        console.log('✅ Данные получены:', data);
-        
-        if (!data?.success) {
-          throw new Error('API вернул success: false');
-        }
+        if (!data?.success) throw new Error('API error');
         
       } catch (err) {
-        console.error('❌ Ошибка API:', err);
-        data = {
-          success: false,
-          error: 'Ошибка подключения к данным. Проверьте настройки доступа к скрипту.'
-        };
+        isFallback = true;
+        try {
+          const fallbackRes = await fetch(FALLBACK_URL);
+          data = await fallbackRes.json();
+          if (!data.success) throw new Error('Fallback error');
+        } catch (fallbackErr) {
+          data = {
+            success: false,
+            error: 'Не удалось загрузить данные. Попробуйте ещё раз.'
+          };
+        }
       }
 
       await new Promise(r => setTimeout(r, spinDuration + 200));
 
+      try { spinAudio.pause(); } catch {}
+      try {
+        winAudio.currentTime = 0;
+        winAudio.play();
+      } catch (e) { console.warn('🔇 winAudio:', e); }
+
       if (data.success) {
-        displayResults(data.data);
+        displayResults(data.data, isFallback);
       } else {
         displayError(data.error);
       }
-      
+
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
     }
 
     // === РЕЗУЛЬТАТ ===
-    function displayResults(employees) {
+    function displayResults(employees, isFallback = false) {
       employeesList.innerHTML = '';
       const medals = ['🥇', '🥈', '🥉', '🎖️', '🏅'];
-      
-      if (!employees || employees.length === 0) {
-        employeesList.innerHTML = '<div class="employee">Нет данных для отображения</div>';
-        resultDiv.style.display = 'block';
-        return;
-      }
-      
       employees.slice(0, 5).forEach((emp, i) => {
         const div = document.createElement('div');
         div.className = 'employee';
@@ -421,6 +437,7 @@
       });
       resultDiv.style.display = 'block';
       
+      // Прокрутка к результатам
       setTimeout(() => {
         resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
@@ -434,7 +451,7 @@
             <div style="font-size: 2em; margin-bottom: 10px;">⚠️</div>
             <div>${message}</div>
             <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">
-              Проверьте настройки доступа к Google Apps Script
+              Попробуйте ещё раз
             </div>
           </div>
         </div>
