@@ -21,6 +21,7 @@
       overflow: hidden;
       position: relative;
     }
+
     /* Сверкающие звёзды */
     .stars {
       position: fixed;
@@ -38,15 +39,18 @@
       0%, 100% { opacity: 0.2; transform: scale(0.8); }
       50% { opacity: 1; transform: scale(1.2); }
     }
+
     /* === ОСНОВНОЙ КОНТЕЙНЕР — ПОТОКОВЫЙ === */
-.container {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 500px;
-  padding: 20px;
-  /* Убраны flex свойства и динамические высоты */
-}
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 500px;
+      padding: 20px 20px calc(var(--tg-safe-area-inset-bottom, 20px) + 20px);
+      margin-top: calc(var(--tg-safe-area-inset-top, 10px) + 10px);
+      margin-inline: auto;
+    }
+
     .header h1 {
       font-size: 1.8em;
       font-weight: 800;
@@ -57,6 +61,7 @@
       margin: 10px 0;
       text-align: center;
     }
+
     .subtitle {
       font-size: 1em;
       opacity: 0.7;
@@ -64,6 +69,7 @@
       color: #e0e0ff;
       text-align: center;
     }
+
     /* === БЛОК РУЛЕТКИ — ЦЕНТРИРОВАН === */
     .wheel-container {
       position: relative;
@@ -71,6 +77,7 @@
       height: 300px;
       margin: 0 auto 25px;
     }
+
     .wheel {
       width: 100%;
       height: 100%;
@@ -89,6 +96,7 @@
       cursor: pointer;
       position: relative;
     }
+
     .wheel::before {
       content: '';
       position: absolute;
@@ -99,6 +107,7 @@
       transform: translate(-50%, -50%);
       z-index: 5;
     }
+
     .center-dot {
       position: absolute;
       top: 50%; left: 50%;
@@ -109,6 +118,7 @@
       z-index: 20;
       box-shadow: 0 0 10px #ffd700;
     }
+
     /* === КНОПКА — ЦЕНТРИРОВАНА === */
     .button {
       background: linear-gradient(135deg, #ffd700, #ff9800);
@@ -139,19 +149,20 @@
       cursor: not-allowed;
       transform: none;
     }
+
     /* === БЛОК РЕЗУЛЬТАТОВ — ПОЯВЛЯЕТСЯ ПОД КНОПКОЙ === */
-.result {
-  margin-top: 30px;
-  background: rgba(255,255,255,0.07);
-  border-radius: 16px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
-  display: none;
-  max-height: 320px;
-  overflow-y: auto;
-  width: 100%;
-}
+    .result {
+      margin: 25px auto 0;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: none;
+      max-height: 320px;
+      overflow-y: auto;
+      width: calc(100% - 40px);
+    }
     .result-title {
       font-size: 1.4em;
       margin-bottom: 15px;
@@ -160,7 +171,7 @@
       text-align: center;
     }
     .employee {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       margin: 12px 0;
       padding: 14px;
       border-radius: 12px;
@@ -214,6 +225,7 @@
         el.appendChild(s);
       }
     }
+
     // === АУДИО ===
     const spinAudio = new Audio('assets/spin.mp3');
     const winAudio = new Audio('assets/win.mp3');
@@ -235,6 +247,7 @@
         console.warn('🔇 Не удалось разблокировать аудио:', e);
       }
     }
+
     // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
@@ -242,26 +255,24 @@
     const employeesList = document.getElementById('employeesList');
     const container = document.getElementById('mainContainer');
 
-    // === API (БЕЗ ПРОБЕЛОВ!) ===
+    // === API ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
-    // === АДАПТАЦИЯ ПОД TELEGRAM INSETS (упрощённая) ===
-function adjustLayout() {
-  if (window.Telegram?.WebApp) {
-    const tg = Telegram.WebApp;
-    
-    // Просто проверяем, есть ли safeArea — и игнорируем, если нет
-    const top = tg.safeArea?.top || 0;
-    const bottom = tg.safeArea?.bottom || 0;
-    
-    // Устанавливаем CSS-переменные (для совместимости)
-    document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
-    document.documentElement.style.setProperty('--tg-safe-area-inset-bottom', `${bottom}px`);
-    
-    // НЕ меняем maxHeight — оставляем стандартный поток
-    // Это предотвращает сжатие/растягивание контента
-  }
-}
+    // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
+    function adjustLayout() {
+      if (window.Telegram?.WebApp) {
+        const tg = Telegram.WebApp;
+        const top = tg.safeArea?.top || 0;
+        const bottom = tg.safeArea?.bottom || 0;
+        document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
+        document.documentElement.style.setProperty('--tg-safe-area-inset-bottom', `${bottom}px`);
+        if (container) {
+          const usableHeight = tg.viewportHeight - top - bottom;
+          container.style.maxHeight = `${usableHeight - 20}px`;
+        }
+      }
+    }
+
     // === КРУЧЕНИЕ ===
     async function spin() {
       unlockAudio();
@@ -298,16 +309,17 @@ function adjustLayout() {
       } catch (err) {
         isDemo = true;
         data = {
-  success: true,
-  data: [  // ← добавлено "data:"
-    {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
-    {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
-    {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
-    {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
-    {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
-  ]
-};
+          success: true,
+          data: [
+            {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
+            {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
+            {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
+            {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
+            {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
+          ]
+        };
       }
+
       await new Promise(r => setTimeout(r, spinDuration + 200));
 
       try { spinAudio.pause(); } catch {}
@@ -320,6 +332,7 @@ function adjustLayout() {
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
     }
+
     // === РЕЗУЛЬТАТ ===
     function displayResults(employees, isDemo = false) {
       employeesList.innerHTML = '';
@@ -338,6 +351,7 @@ function adjustLayout() {
       });
       resultDiv.style.display = 'block';
     }
+
     // === ЗАПУСК ===
     document.addEventListener('DOMContentLoaded', () => {
       createStars();
