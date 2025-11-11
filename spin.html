@@ -86,6 +86,7 @@
       box-shadow:
         0 0 20px rgba(255, 255, 255, 0.2),
         inset 0 0 30px rgba(0,0,0,0.5);
+      /* transition управляется ТОЛЬКО из JS */
       cursor: pointer;
       position: relative;
     }
@@ -219,52 +220,38 @@
     spinAudio.preload = 'auto';
     winAudio.preload = 'auto';
 
-    // === РАЗБЛОКИРОВКА АУДИО (для iOS/Android) ===
-    let audioUnlocked = false;
-    function unlockAudio() {
-      if (audioUnlocked) return;
-      try {
-        spinAudio.play().catch(() => {});
-        winAudio.play().catch(() => {});
-        spinAudio.pause();
-        winAudio.pause();
-        audioUnlocked = true;
-        console.log('🔊 Аудио разблокировано');
-      } catch (e) {
-        console.warn('🔇 Не удалось разблокировать аудио:', e);
-      }
-    }
-
     // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
     const resultDiv = document.getElementById('result');
     const employeesList = document.getElementById('employeesList');
 
-    // === API (без пробелов!) ===
+    // === API ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
     // === КРУЧЕНИЕ ===
     async function spin() {
-      unlockAudio(); // 🔑 ВАЖНО: первая строка!
-
       spinBtn.disabled = true;
       spinBtn.textContent = 'Крутим...';
       resultDiv.style.display = 'none';
 
+      // Воспроизводим звук вращения
       try {
         spinAudio.currentTime = 0;
         spinAudio.play();
       } catch (e) { console.warn('🔇 spinAudio:', e); }
 
-      const rotations = 8 + Math.floor(Math.random() * 5);
-      const sector = Math.floor(Math.random() * 5) * 72;
+      // Параметры вращения
+      const rotations = 8 + Math.floor(Math.random() * 5); // 8–12 оборотов
+      const sector = Math.floor(Math.random() * 5) * 72;   // 0–288°
       const finalDeg = 360 * rotations + sector;
-      const spinDuration = 12000 + Math.random() * 6000;
+      const spinDuration = 12000 + Math.random() * 6000;   // 12–18 сек
 
+      // Запускаем анимацию
       wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
+      // Загрузка данных (параллельно)
       let data = null;
       let isDemo = false;
       try {
@@ -273,7 +260,7 @@
         });
         const txt = await res.text();
         if (txt.includes('<html') || txt.includes('NTA') || !res.ok) {
-          throw new Error('blocked');
+          throw new Error('blocked or invalid');
         }
         data = JSON.parse(txt);
         if (!data?.success) throw new Error('API error');
@@ -281,7 +268,7 @@
         isDemo = true;
         data = {
           success: true,
-           [ // ✅ Исправлено: data → data
+          data: [
             {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
             {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
             {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
@@ -291,14 +278,17 @@
         };
       }
 
+      // Ждём конца анимации
       await new Promise(r => setTimeout(r, spinDuration + 200));
 
+      // Останавливаем spin-звук, играем win-звук
       try { spinAudio.pause(); } catch {}
       try {
         winAudio.currentTime = 0;
         winAudio.play();
       } catch (e) { console.warn('🔇 winAudio:', e); }
 
+      // Показываем результат
       displayResults(data.data, isDemo);
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
