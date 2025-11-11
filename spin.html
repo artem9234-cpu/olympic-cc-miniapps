@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>🎡 Рулетка лучших — КЦ Олимпийский</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -15,17 +15,13 @@
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: white;
-      min-height: 100dvh; /* ← dvh вместо vh */
+      min-height: 100dvh;
       padding-top: var(--tg-safe-area-inset-top);
       padding-bottom: var(--tg-safe-area-inset-bottom);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      text-align: center;
       position: relative;
     }
+
     /* Сверкающие звёзды */
     .stars {
       position: fixed;
@@ -43,6 +39,8 @@
       0%, 100% { opacity: 0.2; transform: scale(0.8); }
       50% { opacity: 1; transform: scale(1.2); }
     }
+
+    /* === ОСНОВНОЙ КОНТЕЙНЕР — ПОТОКОВЫЙ === */
     .container {
       position: relative;
       z-index: 10;
@@ -50,12 +48,9 @@
       max-width: 500px;
       padding: 20px 20px calc(var(--tg-safe-area-inset-bottom, 20px) + 20px);
       margin-top: calc(var(--tg-safe-area-inset-top, 10px) + 10px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-y: auto;
-      max-height: calc(100dvh - var(--tg-safe-area-inset-top, 0px) - var(--tg-safe-area-inset-bottom, 0px) - 20px);
+      margin-inline: auto;
     }
+
     .header h1 {
       font-size: 1.8em;
       font-weight: 800;
@@ -64,29 +59,35 @@
                    0 0 20px rgba(255,215,0,0.4);
       color: #ffd700;
       margin: 10px 0;
+      text-align: center;
     }
+
     .subtitle {
       font-size: 1em;
       opacity: 0.7;
       margin-top: 5px;
       color: #e0e0ff;
+      text-align: center;
     }
+
+    /* === БЛОК РУЛЕТКИ — ЦЕНТРИРОВАН === */
     .wheel-container {
       position: relative;
       width: 300px;
       height: 300px;
       margin: 0 auto 25px;
     }
+
     .wheel {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       background: conic-gradient(
-        #ff5252 0deg,    /* красный */
-        #ff9a00 72deg,   /* оранжевый */
-        #00c853 144deg,  /* зелёный */
-        #2962ff 216deg,  /* синий */
-        #aa00ff 288deg,  /* фиолетовый */
+        #ff5252 0deg,
+        #ff9a00 72deg,
+        #00c853 144deg,
+        #2962ff 216deg,
+        #aa00ff 288deg,
         #ff5252 360deg
       );
       box-shadow:
@@ -95,6 +96,7 @@
       cursor: pointer;
       position: relative;
     }
+
     .wheel::before {
       content: '';
       position: absolute;
@@ -105,6 +107,7 @@
       transform: translate(-50%, -50%);
       z-index: 5;
     }
+
     .center-dot {
       position: absolute;
       top: 50%; left: 50%;
@@ -115,6 +118,8 @@
       z-index: 20;
       box-shadow: 0 0 10px #ffd700;
     }
+
+    /* === КНОПКА — ЦЕНТРИРОВАНА === */
     .button {
       background: linear-gradient(135deg, #ffd700, #ff9800);
       color: #222;
@@ -130,7 +135,8 @@
         0 0 0 4px rgba(255, 215, 0, 0.1);
       z-index: 10;
       position: relative;
-      margin: 20px 0;
+      display: block;
+      margin: 20px auto;
     }
     .button:hover:not(:disabled) {
       transform: scale(1.05) translateY(-2px);
@@ -143,23 +149,26 @@
       cursor: not-allowed;
       transform: none;
     }
+
+    /* === БЛОК РЕЗУЛЬТАТОВ — ПОЯВЛЯЕТСЯ ПОД КНОПКОЙ === */
     .result {
-      margin-top: 25px;
+      margin: 25px auto 0;
       background: rgba(255,255,255,0.07);
       border-radius: 16px;
       padding: 20px;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.1);
       display: none;
-      max-height: calc(100dvh - 300px);
+      max-height: 320px;
       overflow-y: auto;
-      width: 100%;
+      width: calc(100% - 40px);
     }
     .result-title {
       font-size: 1.4em;
       margin-bottom: 15px;
       color: #ffd700;
       text-shadow: 0 0 8px rgba(255,215,0,0.4);
+      text-align: center;
     }
     .employee {
       background: rgba(255,255,255,0.08);
@@ -216,6 +225,7 @@
         el.appendChild(s);
       }
     }
+
     // === АУДИО ===
     const spinAudio = new Audio('assets/spin.mp3');
     const winAudio = new Audio('assets/win.mp3');
@@ -237,6 +247,7 @@
         console.warn('🔇 Не удалось разблокировать аудио:', e);
       }
     }
+
     // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
@@ -244,7 +255,7 @@
     const employeesList = document.getElementById('employeesList');
     const container = document.getElementById('mainContainer');
 
-    // === API ===
+    // === API (БЕЗ ПРОБЕЛОВ!) ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
     // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
@@ -253,16 +264,15 @@
         const tg = Telegram.WebApp;
         const top = tg.safeArea?.top || 0;
         const bottom = tg.safeArea?.bottom || 0;
-        
         document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
         document.documentElement.style.setProperty('--tg-safe-area-inset-bottom', `${bottom}px`);
-        
         if (container) {
           const usableHeight = tg.viewportHeight - top - bottom;
           container.style.maxHeight = `${usableHeight - 20}px`;
         }
       }
     }
+
     // === КРУЧЕНИЕ ===
     async function spin() {
       unlockAudio();
@@ -299,16 +309,17 @@
       } catch (err) {
         isDemo = true;
         data = {
-  success: true,
-  data: [  // ← добавлено "data:"
-    {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
-    {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
-    {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
-    {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
-    {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
-  ]
-};
+          success: true,
+           [
+            {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
+            {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
+            {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
+            {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
+            {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
+          ]
+        };
       }
+
       await new Promise(r => setTimeout(r, spinDuration + 200));
 
       try { spinAudio.pause(); } catch {}
@@ -321,6 +332,7 @@
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
     }
+
     // === РЕЗУЛЬТАТ ===
     function displayResults(employees, isDemo = false) {
       employeesList.innerHTML = '';
@@ -339,6 +351,7 @@
       });
       resultDiv.style.display = 'block';
     }
+
     // === ЗАПУСК ===
     document.addEventListener('DOMContentLoaded', () => {
       createStars();
@@ -352,7 +365,6 @@
         Telegram.WebApp.onEvent('viewportChanged', adjustLayout);
         adjustLayout();
       } else {
-        // fallback для обычных браузеров
         window.addEventListener('resize', adjustLayout);
         adjustLayout();
       }
