@@ -258,8 +258,8 @@
       const finalDeg = 360 * rotations + extraDeg;
 
       // Динамическая длительность анимации (8–12 сек)
-      const spinDuration = 8000 + Math.random() * 4000;
-      wheel.style.transitionDuration = `${spinDuration / 1000}s`;
+      const spinDuration = 9000 + Math.random() * 5000;
+      wheel.style.transitionDuration = `${spinDuration / 2000}s`;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
       let data = null;
