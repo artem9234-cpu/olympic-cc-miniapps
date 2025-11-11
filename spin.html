@@ -2,20 +2,26 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>🎡 Рулетка лучших — КЦ Олимпийский</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --tg-safe-area-inset-top: 0px;
+      --tg-safe-area-inset-bottom: 0px;
+    }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: white;
-      min-height: 100vh;
+      min-height: 100dvh; /* ← dvh вместо vh */
+      padding-top: var(--tg-safe-area-inset-top);
+      padding-bottom: var(--tg-safe-area-inset-bottom);
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       text-align: center;
       position: relative;
@@ -44,7 +50,13 @@
       z-index: 10;
       width: 100%;
       max-width: 500px;
-      padding: 20px;
+      padding: 20px 20px calc(var(--tg-safe-area-inset-bottom, 20px) + 20px);
+      margin-top: calc(var(--tg-safe-area-inset-top, 10px) + 10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+      max-height: calc(100dvh - var(--tg-safe-area-inset-top, 0px) - var(--tg-safe-area-inset-bottom, 0px) - 20px);
     }
 
     .header h1 {
@@ -66,9 +78,9 @@
 
     .wheel-container {
       position: relative;
-      width: 320px;
-      height: 320px;
-      margin: 0 auto 30px;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 25px;
     }
 
     .wheel {
@@ -86,7 +98,6 @@
       box-shadow:
         0 0 20px rgba(255, 255, 255, 0.2),
         inset 0 0 30px rgba(0,0,0,0.5);
-      /* transition управляется ТОЛЬКО из JS */
       cursor: pointer;
       position: relative;
     }
@@ -128,6 +139,7 @@
         0 0 0 4px rgba(255, 215, 0, 0.1);
       z-index: 10;
       position: relative;
+      margin: 20px 0;
     }
     .button:hover:not(:disabled) {
       transform: scale(1.05) translateY(-2px);
@@ -142,15 +154,16 @@
     }
 
     .result {
-      margin-top: 30px;
+      margin-top: 25px;
       background: rgba(255,255,255,0.07);
       border-radius: 16px;
       padding: 20px;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.1);
       display: none;
-      max-height: 320px;
+      max-height: calc(100dvh - 300px);
       overflow-y: auto;
+      width: 100%;
     }
     .result-title {
       font-size: 1.4em;
@@ -177,7 +190,7 @@
 <body>
   <div class="stars" id="stars"></div>
 
-  <div class="container">
+  <div class="container" id="mainContainer">
     <div class="header">
       <h1>Контактный центр Олимпийский</h1>
       <div class="subtitle">🎡 Рулетка лучших сотрудников</div>
@@ -220,38 +233,70 @@
     spinAudio.preload = 'auto';
     winAudio.preload = 'auto';
 
+    // === РАЗБЛОКИРОВКА АУДИО (для iOS/Android) ===
+    let audioUnlocked = false;
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      try {
+        spinAudio.play().catch(() => {});
+        winAudio.play().catch(() => {});
+        spinAudio.pause();
+        winAudio.pause();
+        audioUnlocked = true;
+        console.log('🔊 Аудио разблокировано');
+      } catch (e) {
+        console.warn('🔇 Не удалось разблокировать аудио:', e);
+      }
+    }
+
     // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
     const spinBtn = document.getElementById('spinBtn');
     const resultDiv = document.getElementById('result');
     const employeesList = document.getElementById('employeesList');
+    const container = document.getElementById('mainContainer');
 
     // === API ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
+    // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
+    function adjustLayout() {
+      if (window.Telegram?.WebApp) {
+        const tg = Telegram.WebApp;
+        const top = tg.safeArea?.top || 0;
+        const bottom = tg.safeArea?.bottom || 0;
+        
+        document.documentElement.style.setProperty('--tg-safe-area-inset-top', `${top}px`);
+        document.documentElement.style.setProperty('--tg-safe-area-inset-bottom', `${bottom}px`);
+        
+        if (container) {
+          const usableHeight = tg.viewportHeight - top - bottom;
+          container.style.maxHeight = `${usableHeight - 20}px`;
+        }
+      }
+    }
+
     // === КРУЧЕНИЕ ===
     async function spin() {
+      unlockAudio();
+
       spinBtn.disabled = true;
       spinBtn.textContent = 'Крутим...';
       resultDiv.style.display = 'none';
 
-      // Воспроизводим звук вращения
       try {
         spinAudio.currentTime = 0;
         spinAudio.play();
       } catch (e) { console.warn('🔇 spinAudio:', e); }
 
-      // Параметры вращения
-      const rotations = 8 + Math.floor(Math.random() * 5); // 8–12 оборотов
-      const sector = Math.floor(Math.random() * 5) * 72;   // 0–288°
+      const rotations = 8 + Math.floor(Math.random() * 5);
+      const sector = Math.floor(Math.random() * 5) * 72;
       const finalDeg = 360 * rotations + sector;
-      const spinDuration = 12000 + Math.random() * 6000;   // 12–18 сек
+      const spinDuration = 12000 + Math.random() * 6000;
 
-      // Запускаем анимацию
       wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-      // Загрузка данных (параллельно)
       let data = null;
       let isDemo = false;
       try {
@@ -259,8 +304,8 @@
           headers: { 'Accept': 'application/json' }
         });
         const txt = await res.text();
-        if (txt.includes('<html') || txt.includes('NTA') || !res.ok) {
-          throw new Error('blocked or invalid');
+        if (txt.includes('<html') || txt.includes('NTA') || txt.includes('नेपाल') || !res.ok) {
+          throw new Error('blocked');
         }
         data = JSON.parse(txt);
         if (!data?.success) throw new Error('API error');
@@ -268,7 +313,7 @@
         isDemo = true;
         data = {
           success: true,
-          data: [
+           [
             {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
             {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
             {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
@@ -278,17 +323,14 @@
         };
       }
 
-      // Ждём конца анимации
       await new Promise(r => setTimeout(r, spinDuration + 200));
 
-      // Останавливаем spin-звук, играем win-звук
       try { spinAudio.pause(); } catch {}
       try {
         winAudio.currentTime = 0;
         winAudio.play();
       } catch (e) { console.warn('🔇 winAudio:', e); }
 
-      // Показываем результат
       displayResults(data.data, isDemo);
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
@@ -323,6 +365,12 @@
         Telegram.WebApp.expand();
         Telegram.WebApp.setHeaderColor('#0f0c29');
         Telegram.WebApp.setBackgroundColor('#0f0c29');
+        Telegram.WebApp.onEvent('viewportChanged', adjustLayout);
+        adjustLayout();
+      } else {
+        // fallback для обычных браузеров
+        window.addEventListener('resize', adjustLayout);
+        adjustLayout();
       }
     });
   </script>
