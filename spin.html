@@ -350,65 +350,71 @@
 
     // === КРУЧЕНИЕ ===
     async function spin() {
-      unlockAudio();
+  unlockAudio();
 
-      spinBtn.disabled = true;
-      spinBtn.textContent = 'Крутим...';
-      resultDiv.style.display = 'none';
+  spinBtn.disabled = true;
+  spinBtn.textContent = 'Крутим...';
+  resultDiv.style.display = 'none';
 
-      try {
-        spinAudio.currentTime = 0;
-        spinAudio.play();
-      } catch (e) { console.warn('🔇 spinAudio:', e); }
+  try {
+    spinAudio.currentTime = 0;
+    spinAudio.play();
+  } catch (e) { console.warn('🔇 spinAudio:', e); }
 
-      const rotations = 8 + Math.floor(Math.random() * 5);
-      const sector = Math.floor(Math.random() * 5) * 72;
-      const finalDeg = 360 * rotations + sector;
-      const spinDuration = 12000 + Math.random() * 6000;
+  const rotations = 8 + Math.floor(Math.random() * 5);
+  const sector = Math.floor(Math.random() * 5) * 72;
+  const finalDeg = 360 * rotations + sector;
+  const spinDuration = 12000 + Math.random() * 6000;
 
-      wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
-      wheel.style.transform = `rotate(${finalDeg}deg)`;
+  wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
+  wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-      let data = null;
-      let isDemo = false;
-      try {
-        const res = await fetch(API_URL, {
-          headers: { 'Accept': 'application/json' }
-        });
-        const txt = await res.text();
-        if (txt.includes('<html') || txt.includes('NTA') || txt.includes('नेपाल') || !res.ok) {
-          throw new Error('blocked');
-        }
-        data = JSON.parse(txt);
-        if (!data?.success) throw new Error('API error');
-      } catch (err) {
-        isDemo = true;
-        // УБРАНЫ ДЕМО-ДАННЫЕ С "КОЗЛОВОЙ" И "МОРОЗОВЫМ"
-        // Теперь при ошибке API просто показываем сообщение
-        data = {
-          success: false,
-          error: 'Не удалось загрузить данные'
-        };
-      }
+  let data = null;
+  try {
+    data = await fetchData(); // Выносим логику в отдельную функцию
+  } catch (err) {
+    data = {
+      success: false,
+      error: 'Не удалось загрузить данные. Попробуйте ещё раз.'
+    };
+  }
 
-      await new Promise(r => setTimeout(r, spinDuration + 200));
+  await new Promise(r => setTimeout(r, spinDuration + 200));
 
-      try { spinAudio.pause(); } catch {}
-      try {
-        winAudio.currentTime = 0;
-        winAudio.play();
-      } catch (e) { console.warn('🔇 winAudio:', e); }
+  try { spinAudio.pause(); } catch {}
+  try {
+    winAudio.currentTime = 0;
+    winAudio.play();
+  } catch (e) { console.warn('🔇 winAudio:', e); }
 
-      if (data.success) {
-        displayResults(data.data, isDemo);
-      } else {
-        // Показываем сообщение об ошибке вместо демо-данных
-        displayError(data.error || 'Ошибка загрузки данных');
-      }
-      
-      spinBtn.disabled = false;
-      spinBtn.textContent = 'Крутить';
-    }
+  if (data.success) {
+    displayResults(data.data);
+  } else {
+    displayError(data.error);
+  }
+
+  spinBtn.disabled = false;
+  spinBtn.textContent = 'Крутить';
+}
+
+// Отдельная функция для получения данных
+async function fetchData() {
+  const res = await fetch(API_URL, {
+    headers: { 'Accept': 'application/json' }
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  if (!data.success) {
+    throw new Error(data.error || 'API returned error');
+  }
+
+  return data;
+}
 
     // === РЕЗУЛЬТАТ ===
     function displayResults(employees, isDemo = false) {
