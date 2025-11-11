@@ -241,10 +241,14 @@
       }
     }
 
-    // === АУДИО (реальные, короткие, без base64-мусора) ===
+        // === АУДИО (твои локальные файлы) ===
     const spinAudio = new Audio();
-    spinAudio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-spinning-wheel-2060.mp3';
+    spinAudio.src = 'assets/spin.mp3';
     spinAudio.preload = 'auto';
+
+    const winAudio = new Audio();
+    winAudio.src = 'assets/win.mp3';
+    winAudio.preload = 'auto';
 
     const winAudio = new Audio();
     winAudio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3';
