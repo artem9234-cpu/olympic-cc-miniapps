@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>🎡 Рулетка лучших — КЦ Олимпийский</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -299,15 +299,15 @@
       } catch (err) {
         isDemo = true;
         data = {
-          success: true,
-           [
-            {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
-            {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
-            {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
-            {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
-            {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
-          ]
-        };
+  success: true,
+  data: [  // ← добавлено "data:"
+    {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
+    {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
+    {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
+    {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
+    {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
+  ]
+};
       }
       await new Promise(r => setTimeout(r, spinDuration + 200));
 
