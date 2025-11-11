@@ -244,48 +244,64 @@
     // === URL API (БЕЗ ПРОБЕЛОВ!) ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
-            // === КРУЧЕНИЕ ===
+                // === КРУЧЕНИЕ (удлинённая версия под долгое аудио) ===
     async function spin() {
       spinBtn.disabled = true;
       spinBtn.textContent = 'Крутим...';
       resultDiv.style.display = 'none';
 
-      try { spinAudio.currentTime = 0; spinAudio.play(); } catch {}
+      // Сбрасываем и играем звук вращения
+      try {
+        spinAudio.pause();
+        spinAudio.currentTime = 0;
+        spinAudio.play().catch(e => console.warn('🔇 Звук вращения не проигран:', e));
+      } catch (e) {
+        console.warn('🔇 Ошибка инициализации spinAudio:', e);
+      }
 
-      // Случайное вращение: 6–10 полных оборотов + сектор
-      const rotations = 6 + Math.random() * 4;
-      const extraDeg = Math.floor(Math.random() * 5) * 72;
-      const finalDeg = 360 * rotations + extraDeg;
+      // Генерируем вращение: 8–12 полных оборотов + случайный сектор
+      const rotations = 8 + Math.floor(Math.random() * 5); // 8–12 оборотов
+      const sectorDeg = Math.floor(Math.random() * 5) * 72; // 0, 72, 144, 216, 288
+      const finalDeg = 360 * rotations + sectorDeg;
 
-      // Динамическая длительность анимации (8–12 сек)
-      const spinDuration = 10000 + Math.random() * 6000;
-      wheel.style.transitionDuration = `${spinDuration / 1000}s`;
+      // ⏱ Длительность: 12–18 секунд (под длинное аудио)
+      const spinDuration = 12000 + Math.random() * 6000; // 12 000–18 000 мс
+
+      // Плавная кривая: быстрый старт → плавное торможение (как настоящая рулетка)
+      wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
+      // === ЗАГРУЗКА ДАННЫХ (параллельно с анимацией!) ===
       let data = null;
       let isDemo = false;
 
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // таймаут 10 сек
+
         const response = await fetch(API_URL, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-          }
+          },
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const text = await response.text();
-        if (text.includes('<html')) {
-          throw new Error('GAS returned HTML (e.g. NTA block)');
+        if (text.includes('<html') || text.includes('NTA') || text.includes('नेपाल')) {
+          throw new Error('GAS returned HTML (e.g. NTA block in Nepal)');
         }
         data = JSON.parse(text);
-        if (!data.success) throw new Error(data.error || 'API error');
+        if (!data?.success) throw new Error(data?.error || 'API error');
       } catch (err) {
         console.warn('⚠️ API error → fallback to demo', err.message);
         data = {
           success: true,
-          data: [
+           [
             {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
             {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
             {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
@@ -296,11 +312,22 @@
         isDemo = true;
       }
 
-      // Ждём окончания анимации
-      await new Promise(r => setTimeout(r, spinDuration + 100));
+      // ⏳ Ждём окончания анимации (точно столько, сколько длится вращение)
+      await new Promise(r => setTimeout(r, spinDuration + 200)); // +200 мс запаса
 
-      try { winAudio.currentTime = 0; winAudio.play(); } catch {}
+      // Останавливаем звук вращения (на случай, если он ещё играет)
+      try { spinAudio.pause(); } catch {}
 
+      // Играем звук победы
+      try {
+        winAudio.pause();
+        winAudio.currentTime = 0;
+        winAudio.play().catch(e => console.warn('🔇 Звук победы не проигран:', e));
+      } catch (e) {
+        console.warn('🔇 Ошибка инициализации winAudio:', e);
+      }
+
+      // Показываем результат
       displayResults(data.data, isDemo);
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
