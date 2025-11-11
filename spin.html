@@ -383,15 +383,11 @@
         if (!data?.success) throw new Error('API error');
       } catch (err) {
         isDemo = true;
+        // УБРАНЫ ДЕМО-ДАННЫЕ С "КОЗЛОВОЙ" И "МОРОЗОВЫМ"
+        // Теперь при ошибке API просто показываем сообщение
         data = {
-          success: true,
-          data: [
-            {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
-            {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
-            {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
-            {name: "Козлова", calls: 372, aht: "3:55", missed: 0, quality: "99%"},
-            {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
-          ]
+          success: false,
+          error: 'Не удалось загрузить данные'
         };
       }
 
@@ -403,7 +399,13 @@
         winAudio.play();
       } catch (e) { console.warn('🔇 winAudio:', e); }
 
-      displayResults(data.data, isDemo);
+      if (data.success) {
+        displayResults(data.data, isDemo);
+      } else {
+        // Показываем сообщение об ошибке вместо демо-данных
+        displayError(data.error || 'Ошибка загрузки данных');
+      }
+      
       spinBtn.disabled = false;
       spinBtn.textContent = 'Крутить';
     }
@@ -412,6 +414,13 @@
     function displayResults(employees, isDemo = false) {
       employeesList.innerHTML = '';
       const medals = ['🥇', '🥈', '🥉', '🎖️', '🏅'];
+      
+      if (!employees || employees.length === 0) {
+        employeesList.innerHTML = '<div class="employee">Нет данных для отображения</div>';
+        resultDiv.style.display = 'block';
+        return;
+      }
+      
       employees.slice(0, 5).forEach((emp, i) => {
         const div = document.createElement('div');
         div.className = 'employee';
@@ -430,6 +439,22 @@
       setTimeout(() => {
         resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
+    }
+
+    // === ОШИБКА ===
+    function displayError(message) {
+      employeesList.innerHTML = `
+        <div class="employee">
+          <div style="text-align: center; color: #ff6b6b;">
+            <div style="font-size: 2em; margin-bottom: 10px;">⚠️</div>
+            <div>${message}</div>
+            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">
+              Попробуйте ещё раз
+            </div>
+          </div>
+        </div>
+      `;
+      resultDiv.style.display = 'block';
     }
 
     // === ЗАПУСК ===
