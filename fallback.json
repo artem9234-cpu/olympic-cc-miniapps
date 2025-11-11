@@ -1,1 +1,41 @@
-
+{
+  "success": true,
+  "data": [
+    {
+      "name": "Петров",
+      "calls": "360",
+      "aht": "5 мин",
+      "missed": "1",
+      "quality": "62"
+    },
+    {
+      "name": "Иванов",
+      "calls": "280",
+      "aht": "6.4 мин",
+      "missed": "0",
+      "quality": "70"
+    },
+    {
+      "name": "Сидоров",
+      "calls": "175",
+      "aht": "7 мин",
+      "missed": "2",
+      "quality": "78"
+    },
+    {
+      "name": "Тимофеев",
+      "calls": "160",
+      "aht": "7.2 мин",
+      "missed": "4",
+      "quality": "60"
+    },
+    {
+      "name": "Мартынов",
+      "calls": "147",
+      "aht": "9 мин",
+      "missed": "2",
+      "quality": "57"
+    }
+  ],
+  "timestamp": "2025-11-11T11:50:48.451Z"
+}
