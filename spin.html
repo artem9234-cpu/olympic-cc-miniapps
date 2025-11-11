@@ -47,9 +47,6 @@
       padding: 20px;
     }
 
-    .header {
-      margin-bottom: 25px;
-    }
     .header h1 {
       font-size: 1.8em;
       font-weight: 800;
@@ -84,17 +81,16 @@
         #00c853 144deg,  /* зелёный */
         #2962ff 216deg,  /* синий */
         #aa00ff 288deg,  /* фиолетовый */
-        #ff5252 360deg   /* замыкание */
+        #ff5252 360deg
       );
       box-shadow:
         0 0 20px rgba(255, 255, 255, 0.2),
         inset 0 0 30px rgba(0,0,0,0.5);
-      transition: transform 5s cubic-bezier(0.16, 1, 0.3, 1);
+      /* transition управляется ТОЛЬКО из JS */
       cursor: pointer;
       position: relative;
     }
 
-    /* Прозрачный центр (чтобы не мешал звёздам) */
     .wheel::before {
       content: '';
       position: absolute;
@@ -135,9 +131,6 @@
     }
     .button:hover:not(:disabled) {
       transform: scale(1.05) translateY(-2px);
-      box-shadow:
-        0 8px 25px rgba(255, 215, 0, 0.7),
-        0 0 0 4px rgba(255, 215, 0, 0.3);
     }
     .button:active {
       transform: scale(0.98) translateY(1px);
@@ -204,35 +197,27 @@
   </div>
 
   <script>
-    // === ГЕНЕРАЦИЯ ЗВЁЗД ===
+    // === ЗВЁЗДЫ ===
     function createStars() {
-      const starsEl = document.getElementById('stars');
-      const count = 80;
-      for (let i = 0; i < count; i++) {
-        const star = document.createElement('div');
-        star.classList.add('star');
+      const el = document.getElementById('stars');
+      for (let i = 0; i < 80; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
         const size = Math.random() * 3 + 1;
-        const posX = Math.random() * 100;
-        const posY = Math.random() * 100;
-        const dur = 2 + Math.random() * 5;
-        const delay = Math.random() * 5;
-        star.style.width = `${size}px`;
-        star.style.height = `${size}px`;
-        star.style.left = `${posX}%`;
-        star.style.top = `${posY}%`;
-        star.style.setProperty('--dur', `${dur}s`);
-        star.style.animationDelay = `${delay}s`;
-        starsEl.appendChild(star);
+        s.style.width = `${size}px`;
+        s.style.height = `${size}px`;
+        s.style.left = `${Math.random() * 100}%`;
+        s.style.top = `${Math.random() * 100}%`;
+        s.style.setProperty('--dur', `${2 + Math.random() * 5}s`);
+        s.style.animationDelay = `${Math.random() * 5}s`;
+        el.appendChild(s);
       }
     }
 
-            // === АУДИО (твои локальные файлы) ===
-    const spinAudio = new Audio();
-    spinAudio.src = 'assets/spin.mp3';
+    // === АУДИО ===
+    const spinAudio = new Audio('assets/spin.mp3');
+    const winAudio = new Audio('assets/win.mp3');
     spinAudio.preload = 'auto';
-
-    const winAudio = new Audio();
-    winAudio.src = 'assets/win.mp3';
     winAudio.preload = 'auto';
 
     // === ЭЛЕМЕНТЫ ===
@@ -241,67 +226,49 @@
     const resultDiv = document.getElementById('result');
     const employeesList = document.getElementById('employeesList');
 
-    // === URL API (БЕЗ ПРОБЕЛОВ!) ===
+    // === API ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbxoCRyJ6k2y-fphW2D2jjVi8GldHXmDrdvoYwxVFUnnR6QLyg-67NxP-TPrfK0QksipAw/exec?action=spin';
 
-                // === КРУЧЕНИЕ (удлинённая версия под долгое аудио) ===
+    // === КРУЧЕНИЕ ===
     async function spin() {
       spinBtn.disabled = true;
       spinBtn.textContent = 'Крутим...';
       resultDiv.style.display = 'none';
 
-      // Сбрасываем и играем звук вращения
+      // Воспроизводим звук вращения
       try {
-        spinAudio.pause();
         spinAudio.currentTime = 0;
-        spinAudio.play().catch(e => console.warn('🔇 Звук вращения не проигран:', e));
-      } catch (e) {
-        console.warn('🔇 Ошибка инициализации spinAudio:', e);
-      }
+        spinAudio.play();
+      } catch (e) { console.warn('🔇 spinAudio:', e); }
 
-      // Генерируем вращение: 8–12 полных оборотов + случайный сектор
+      // Параметры вращения
       const rotations = 8 + Math.floor(Math.random() * 5); // 8–12 оборотов
-      const sectorDeg = Math.floor(Math.random() * 5) * 72; // 0, 72, 144, 216, 288
-      const finalDeg = 360 * rotations + sectorDeg;
+      const sector = Math.floor(Math.random() * 5) * 72;   // 0–288°
+      const finalDeg = 360 * rotations + sector;
+      const spinDuration = 12000 + Math.random() * 6000;   // 12–18 сек
 
-      // ⏱ Длительность: 12–18 секунд (под длинное аудио)
-      const spinDuration = 12000 + Math.random() * 6000; // 12 000–18 000 мс
-
-      // Плавная кривая: быстрый старт → плавное торможение (как настоящая рулетка)
+      // Запускаем анимацию
       wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.17, 0.67, 0.14, 0.98)`;
       wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-      // === ЗАГРУЗКА ДАННЫХ (параллельно с анимацией!) ===
+      // Загрузка данных (параллельно)
       let data = null;
       let isDemo = false;
-
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // таймаут 10 сек
-
-        const response = await fetch(API_URL, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-          },
-          signal: controller.signal
+        const res = await fetch(API_URL, {
+          headers: { 'Accept': 'application/json' }
         });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const text = await response.text();
-        if (text.includes('<html') || text.includes('NTA') || text.includes('नेपाल')) {
-          throw new Error('GAS returned HTML (e.g. NTA block in Nepal)');
+        const txt = await res.text();
+        if (txt.includes('<html') || txt.includes('NTA') || !res.ok) {
+          throw new Error('blocked or invalid');
         }
-        data = JSON.parse(text);
-        if (!data?.success) throw new Error(data?.error || 'API error');
+        data = JSON.parse(txt);
+        if (!data?.success) throw new Error('API error');
       } catch (err) {
-        console.warn('⚠️ API error → fallback to demo', err.message);
+        isDemo = true;
         data = {
           success: true,
-           [
+          data: [
             {name: "Иванов", calls: 420, aht: "3:12", missed: 2, quality: "98%"},
             {name: "Петрова", calls: 395, aht: "3:45", missed: 1, quality: "100%"},
             {name: "Сидоров", calls: 380, aht: "4:01", missed: 3, quality: "96%"},
@@ -309,23 +276,17 @@
             {name: "Морозов", calls: 368, aht: "4:10", missed: 4, quality: "94%"}
           ]
         };
-        isDemo = true;
       }
 
-      // ⏳ Ждём окончания анимации (точно столько, сколько длится вращение)
-      await new Promise(r => setTimeout(r, spinDuration + 200)); // +200 мс запаса
+      // Ждём конца анимации
+      await new Promise(r => setTimeout(r, spinDuration + 200));
 
-      // Останавливаем звук вращения (на случай, если он ещё играет)
+      // Останавливаем spin-звук, играем win-звук
       try { spinAudio.pause(); } catch {}
-
-      // Играем звук победы
       try {
-        winAudio.pause();
         winAudio.currentTime = 0;
-        winAudio.play().catch(e => console.warn('🔇 Звук победы не проигран:', e));
-      } catch (e) {
-        console.warn('🔇 Ошибка инициализации winAudio:', e);
-      }
+        winAudio.play();
+      } catch (e) { console.warn('🔇 winAudio:', e); }
 
       // Показываем результат
       displayResults(data.data, isDemo);
@@ -333,16 +294,15 @@
       spinBtn.textContent = 'Крутить';
     }
 
+    // === РЕЗУЛЬТАТ ===
     function displayResults(employees, isDemo = false) {
       employeesList.innerHTML = '';
       const medals = ['🥇', '🥈', '🥉', '🎖️', '🏅'];
-
       employees.slice(0, 5).forEach((emp, i) => {
         const div = document.createElement('div');
         div.className = 'employee';
-        let nameLine = `<span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}`;
         div.innerHTML = `
-          <div class="employee-name">${nameLine}</div>
+          <div class="employee-name"><span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}</div>
           📞 Звонки: ${emp.calls || '–'}<br>
           ⏱ AHT: ${emp.aht || '–'}<br>
           ❌ Пропущенные: ${emp.missed || '–'}<br>
@@ -350,16 +310,14 @@
         `;
         employeesList.appendChild(div);
       });
-
       resultDiv.style.display = 'block';
     }
 
-    // === ИНИЦИАЛИЗАЦИЯ ===
+    // === ЗАПУСК ===
     document.addEventListener('DOMContentLoaded', () => {
       createStars();
       spinBtn.addEventListener('click', spin);
 
-      // Telegram WebApp
       if (window.Telegram?.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
