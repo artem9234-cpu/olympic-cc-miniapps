@@ -332,7 +332,8 @@
 
     // === API и Fallback ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbwzUQpPcs8gEv5x6MKJpeeANRD8S7m9OhRr-SkD4SHGB1vLuOMAJa0IRxx0X2XaYIEfDg/exec';
-    const FALLBACK_URL = 'https://artem9234-cpu.github.io/olympic-cc-miniapps/fallback.json';
+    // Генерируем уникальный параметр для обхода кэша
+    const FALLBACK_URL = 'https://artem9234-cpu.github.io/olympic-cc-miniapps/fallback.json?_=' + Date.now();
 
     // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
     function adjustLayout() {
