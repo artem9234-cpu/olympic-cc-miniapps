@@ -380,23 +380,25 @@
     function createBulbs() {
   const ring = document.getElementById('bulbRing');
   const bulbCount = 24;
-  const radiusPercent = 47; // Радиус орбиты
+  const bulbSize = 16; // Размер лампочки в px (из CSS)
+  const radiusPercent = 46; // Радиус орбиты (чуть меньше 50%, чтобы влезали)
   
   for (let i = 0; i < bulbCount; i++) {
     const bulb = document.createElement('div');
     bulb.className = 'bulb';
     
-    const angle = (i * 360 / bulbCount);
+    // Угол в радианах, начинаем с -90° (сверху)
+    const angle = (i * 2 * Math.PI / bulbCount) - Math.PI / 2;
     
-    // Позиционируем через transform для идеального центрирования
-    bulb.style.left = '50%';
-    bulb.style.top = '50%';
-    bulb.style.transform = `
-      rotate(${angle}deg) 
-      translate(${radiusPercent}%) 
-      rotate(-${angle}deg)
-      translate(-50%, -50%)
-    `;
+    // Рассчитываем позицию в процентах
+    const x = 50 + radiusPercent * Math.cos(angle);
+    const y = 50 + radiusPercent * Math.sin(angle);
+    
+    // Центрируем лампочку (вычитаем половину её размера)
+    const offset = (bulbSize / min(320, window.innerWidth * 0.85)) * 100;
+    
+    bulb.style.left = `calc(${x}% - ${offset}%)`;
+    bulb.style.top = `calc(${y}% - ${offset}%)`;
     
     ring.appendChild(bulb);
   }
