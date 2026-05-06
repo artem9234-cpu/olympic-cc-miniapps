@@ -10,7 +10,8 @@
     :root {
       --tg-safe-area-inset-top: 0px;
       --tg-safe-area-inset-bottom: 0px;
-      --wheel-size: min(85vw, 300px);
+      --wheel-size: min(85vw, 320px);
+      --bulb-size: 16px;
     }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -41,7 +42,7 @@
       50% { opacity: 1; transform: scale(1.2); }
     }
 
-    /* === ОСНОВНОЙ КОНТЕЙНЕР — АДАПТИВНЫЙ === */
+    /* === ОСНОВНОЙ КОНТЕЙНЕР === */
     .container {
       position: relative;
       z-index: 10;
@@ -59,8 +60,7 @@
       font-size: clamp(1.4em, 6vw, 1.8em);
       font-weight: 800;
       letter-spacing: 0.5px;
-      text-shadow: 0 0 10px rgba(255,215,0,0.6),
-                   0 0 20px rgba(255,215,0,0.4);
+      text-shadow: 0 0 10px rgba(255,215,0,0.6), 0 0 20px rgba(255,215,0,0.4);
       color: #ffd700;
       margin: 8px 0;
       text-align: center;
@@ -76,15 +76,91 @@
       line-height: 1.2;
     }
 
-    /* === БЛОК РУЛЕТКИ — АДАПТИВНЫЙ === */
-    .wheel-container {
+    /* === СТРЕЛКА-УКАЗАТЕЛЬ === */
+    .pointer-container {
+      position: relative;
+      width: var(--wheel-size);
+      height: 50px;
+      margin: 0 auto 5px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .pointer {
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-top: 45px solid #ffd700;
+      filter: drop-shadow(0 0 10px rgba(255,215,0,0.8)) drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+      z-index: 30;
+      animation: pointerBounce 0.6s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+
+    .pointer.spinning {
+      animation-play-state: running;
+    }
+
+    @keyframes pointerBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.1); }
+    }
+
+    /* === РУЛЕТКА С ЛАМПОЧКАМИ === */
+    .wheel-wrapper {
       position: relative;
       width: var(--wheel-size);
       height: var(--wheel-size);
-      margin: 10px auto 20px;
-      flex-shrink: 0;
+      margin: 0 auto 20px;
     }
 
+    /* Кольцо с лампочками */
+    .bulb-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .bulb {
+      position: absolute;
+      width: var(--bulb-size);
+      height: var(--bulb-size);
+      background: radial-gradient(circle at 30% 30%, #fff, #ffd700, #ff8c00);
+      border-radius: 50%;
+      box-shadow: 
+        0 0 10px #ffd700,
+        0 0 20px #ffd700,
+        0 0 30px rgba(255,215,0,0.5),
+        inset -2px -2px 4px rgba(0,0,0,0.3);
+      animation: bulbFlash 1s ease-in-out infinite;
+    }
+
+    .bulb:nth-child(odd) { animation-delay: 0s; }
+    .bulb:nth-child(even) { animation-delay: 0.5s; }
+
+    .bulb.spinning {
+      animation: bulbFlash 0.3s ease-in-out infinite;
+    }
+
+    @keyframes bulbFlash {
+      0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+        box-shadow: 0 0 15px #ffd700, 0 0 30px #ffd700, 0 0 45px rgba(255,215,0,0.6);
+      }
+      50% { 
+        opacity: 0.6; 
+        transform: scale(0.9);
+        box-shadow: 0 0 5px #ff8c00, 0 0 10px #ff8c00;
+      }
+    }
+
+    /* Само колесо */
     .wheel {
       width: 100%;
       height: 100%;
@@ -98,35 +174,55 @@
         #ff5252 360deg
       );
       box-shadow:
-        0 0 20px rgba(255, 255, 255, 0.2),
-        inset 0 0 30px rgba(0,0,0,0.5);
-      cursor: pointer;
+        0 0 30px rgba(255, 255, 255, 0.3),
+        inset 0 0 40px rgba(0,0,0,0.6),
+        0 0 60px rgba(255,215,0,0.2);
       position: relative;
+      border: 8px solid #2a2a4a;
     }
 
+    /* Внутренний круг */
     .wheel::before {
       content: '';
       position: absolute;
       top: 50%; left: 50%;
-      width: 30%; height: 30%;
-      background: transparent;
+      width: 35%; height: 35%;
+      background: radial-gradient(circle at 30% 30%, #4a4a6a, #1a1a2e);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       z-index: 5;
+      border: 4px solid #ffd700;
+      box-shadow: 0 0 20px rgba(255,215,0,0.4);
     }
 
+    /* Центральная точка */
     .center-dot {
       position: absolute;
       top: 50%; left: 50%;
-      width: 12px; height: 12px;
-      background: #ffd700;
+      width: 16px; height: 16px;
+      background: radial-gradient(circle at 30% 30%, #fff, #ffd700);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       z-index: 20;
-      box-shadow: 0 0 10px #ffd700;
+      box-shadow: 
+        0 0 15px #ffd700,
+        0 0 30px #ffd700,
+        0 0 45px rgba(255,215,0,0.6);
     }
 
-    /* === КНОПКА — АДАПТИВНАЯ === */
+    /* Декоративные спицы */
+    .spoke {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 45%;
+      background: linear-gradient(to bottom, rgba(255,215,0,0.6), transparent);
+      transform-origin: top center;
+      z-index: 6;
+    }
+
+    /* === КНОПКА === */
     .button {
       background: linear-gradient(135deg, #ffd700, #ff9800);
       color: #222;
@@ -149,6 +245,7 @@
     }
     .button:hover:not(:disabled) {
       transform: scale(1.05) translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.7), 0 0 0 6px rgba(255, 215, 0, 0.2);
     }
     .button:active {
       transform: scale(0.98) translateY(1px);
@@ -159,7 +256,7 @@
       transform: none;
     }
 
-    /* === БЛОК РЕЗУЛЬТАТОВ — АДАПТИВНЫЙ === */
+    /* === БЛОК РЕЗУЛЬТАТОВ === */
     .result {
       margin: 20px auto 0;
       background: rgba(255, 255, 255, 0.07);
@@ -203,61 +300,32 @@
       margin-right: 6px; 
     }
 
-    /* === АДАПТИВНЫЕ СТИЛИ ДЛЯ МАЛЕНЬКИХ ЭКРАНОВ === */
+    /* === АДАПТИВНОСТЬ === */
     @media (max-height: 700px) {
-      .wheel-container {
+      .wheel-wrapper {
         width: calc(var(--wheel-size) * 0.9);
         height: calc(var(--wheel-size) * 0.9);
-        margin: 5px auto 15px;
       }
-      
-      .container {
-        padding: 10px 10px calc(var(--tg-safe-area-inset-bottom, 10px) + 10px);
+      .pointer-container {
+        width: calc(var(--wheel-size) * 0.9);
       }
-      
-      .header h1 {
-        margin: 5px 0;
-      }
-      
-      .button {
-        margin: 10px auto;
-        padding: 12px 25px;
-      }
-      
-      .result {
-        margin: 15px auto 0;
-        max-height: 35vh;
-      }
+      :root { --bulb-size: 14px; }
     }
 
     @media (max-height: 600px) {
-      .wheel-container {
+      .wheel-wrapper {
         width: calc(var(--wheel-size) * 0.8);
         height: calc(var(--wheel-size) * 0.8);
       }
-      
-      .result {
-        max-height: 30vh;
+      .pointer-container {
+        width: calc(var(--wheel-size) * 0.8);
       }
-      
-      .employee {
-        margin: 8px 0;
-        padding: 10px;
-      }
+      :root { --bulb-size: 12px; }
     }
 
-    /* Скрываем скроллбар для лучшего вида */
-    .result::-webkit-scrollbar {
-      width: 4px;
-    }
-    .result::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-    }
-    .result::-webkit-scrollbar-thumb {
-      background: rgba(255,215,0,0.5);
-      border-radius: 2px;
-    }
+    .result::-webkit-scrollbar { width: 4px; }
+    .result::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .result::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.5); border-radius: 2px; }
   </style>
 </head>
 <body>
@@ -269,12 +337,19 @@
       <div class="subtitle">🎡 Рулетка лучших сотрудников</div>
     </div>
 
-    <div class="wheel-container">
+    <!-- Стрелка -->
+    <div class="pointer-container">
+      <div class="pointer" id="pointer"></div>
+    </div>
+
+    <!-- Рулетка с лампочками -->
+    <div class="wheel-wrapper">
+      <div class="bulb-ring" id="bulbRing"></div>
       <div class="wheel" id="wheel"></div>
       <div class="center-dot"></div>
     </div>
 
-    <button class="button" id="spinBtn">Крутить</button>
+    <button class="button" id="spinBtn">🎯 Крутить</button>
 
     <div class="result" id="result">
       <div class="result-title">🎊 Результаты:</div>
@@ -301,13 +376,43 @@
       }
     }
 
+    // === ЛАМПОЧКИ ПО КРУГУ ===
+    function createBulbs() {
+      const ring = document.getElementById('bulbRing');
+      const bulbCount = 24; // Количество лампочек
+      const radius = 50; // Процент от размера колеса
+      
+      for (let i = 0; i < bulbCount; i++) {
+        const bulb = document.createElement('div');
+        bulb.className = 'bulb';
+        const angle = (i * 360 / bulbCount) * (Math.PI / 180);
+        const x = 50 + radius * Math.cos(angle) - 8; // -8 это половина размера лампочки
+        const y = 50 + radius * Math.sin(angle) - 8;
+        bulb.style.left = `${x}%`;
+        bulb.style.top = `${y}%`;
+        ring.appendChild(bulb);
+      }
+    }
+
+    // === СПИЦЫ ===
+    function createSpokes() {
+      const wheel = document.getElementById('wheel');
+      const spokeCount = 5;
+      for (let i = 0; i < spokeCount; i++) {
+        const spoke = document.createElement('div');
+        spoke.className = 'spoke';
+        spoke.style.transform = `rotate(${i * 360 / spokeCount}deg)`;
+        wheel.appendChild(spoke);
+      }
+    }
+
     // === АУДИО ===
     const spinAudio = new Audio('assets/spin.mp3');
     const winAudio = new Audio('assets/win.mp3');
     spinAudio.preload = 'auto';
     winAudio.preload = 'auto';
 
-    // === РАЗБЛОКИРОВКА АУДИО (для iOS/Android) ===
+    // === РАЗБЛОКИРОВКА АУДИО ===
     let audioUnlocked = false;
     function unlockAudio() {
       if (audioUnlocked) return;
@@ -317,25 +422,23 @@
         spinAudio.pause();
         winAudio.pause();
         audioUnlocked = true;
-        console.log('🔊 Аудио разблокировано');
-      } catch (e) {
-        console.warn('🔇 Не удалось разблокировать аудио:', e);
-      }
+      } catch (e) { console.warn('🔇 Audio unlock:', e); }
     }
 
     // === ЭЛЕМЕНТЫ ===
     const wheel = document.getElementById('wheel');
+    const pointer = document.getElementById('pointer');
     const spinBtn = document.getElementById('spinBtn');
     const resultDiv = document.getElementById('result');
     const employeesList = document.getElementById('employeesList');
     const container = document.getElementById('mainContainer');
+    const bulbs = document.querySelectorAll('.bulb');
 
-    // === API и Fallback ===
+    // === API ===
     const API_URL = 'https://script.google.com/macros/s/AKfycbwzUQpPcs8gEv5x6MKJpeeANRD8S7m9OhRr-SkD4SHGB1vLuOMAJa0IRxx0X2XaYIEfDg/exec';
-    // Генерируем уникальный параметр для обхода кэша
     const FALLBACK_URL = 'https://artem9234-cpu.github.io/olympic-cc-miniapps/fallback.json?_=' + Date.now();
 
-    // === АДАПТАЦИЯ ПОД TELEGRAM INSETS ===
+    // === АДАПТАЦИЯ ===
     function adjustLayout() {
       if (window.Telegram?.WebApp) {
         const tg = Telegram.WebApp;
@@ -358,6 +461,10 @@
       spinBtn.textContent = 'Крутим...';
       resultDiv.style.display = 'none';
 
+      // Запускаем анимации
+      pointer.classList.add('spinning');
+      bulbs.forEach(bulb => bulb.classList.add('spinning'));
+
       try {
         spinAudio.currentTime = 0;
         spinAudio.play();
@@ -375,12 +482,9 @@
       let isFallback = false;
 
       try {
-        const res = await fetch(API_URL, {
-          headers: { 'Accept': 'application/json' }
-        });
+        const res = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
         const txt = await res.text();
         
-        // Если ответ содержит HTML или NTA — используем fallback
         if (txt.includes('<html') || txt.includes('NTA') || txt.includes('नेपाल') || !res.ok) {
           throw new Error('blocked');
         }
@@ -395,14 +499,15 @@
           data = await fallbackRes.json();
           if (!data.success) throw new Error('Fallback error');
         } catch (fallbackErr) {
-          data = {
-            success: false,
-            error: 'Не удалось загрузить данные. Попробуйте ещё раз.'
-          };
+          data = { success: false, error: 'Не удалось загрузить данные. Попробуйте ещё раз.' };
         }
       }
 
       await new Promise(r => setTimeout(r, spinDuration + 200));
+
+      // Останавливаем анимации
+      pointer.classList.remove('spinning');
+      bulbs.forEach(bulb => bulb.classList.remove('spinning'));
 
       try { spinAudio.pause(); } catch {}
       try {
@@ -417,7 +522,7 @@
       }
 
       spinBtn.disabled = false;
-      spinBtn.textContent = 'Крутить';
+      spinBtn.textContent = '🎯 Крутить';
     }
 
     // === РЕЗУЛЬТАТ ===
@@ -438,7 +543,6 @@
       });
       resultDiv.style.display = 'block';
       
-      // Прокрутка к результатам
       setTimeout(() => {
         resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
@@ -451,9 +555,7 @@
           <div style="text-align: center; color: #ff6b6b;">
             <div style="font-size: 2em; margin-bottom: 10px;">⚠️</div>
             <div>${message}</div>
-            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">
-              Попробуйте ещё раз
-            </div>
+            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">Попробуйте ещё раз</div>
           </div>
         </div>
       `;
@@ -463,6 +565,8 @@
     // === ЗАПУСК ===
     document.addEventListener('DOMContentLoaded', () => {
       createStars();
+      createBulbs();
+      createSpokes();
       spinBtn.addEventListener('click', spin);
 
       if (window.Telegram?.WebApp) {
