@@ -520,27 +520,32 @@
     }
 
     // === РЕЗУЛЬТАТ ===
-    function displayResults(employees, isFallback = false) {
-      employeesList.innerHTML = '';
-      const medals = ['🥇', '🥈', '', '🎖️', '🏅'];
-      employees.slice(0, 5).forEach((emp, i) => {
-        const div = document.createElement('div');
-        div.className = 'employee';
-        div.innerHTML = `
-          <div class="employee-name"><span class="medal">${medals[i] || '👤'}</span>${emp.name || '—'}</div>
-          📞 Звонки: ${emp.calls || '–'}<br>
-          ⏱ AHT: ${emp.aht || '–'}<br>
-          ❌ Пропущенные: ${emp.missed || '–'}<br>
-          ✅ Качество: ${emp.quality || '–'}
-        `;
-        employeesList.appendChild(div);
-      });
-      resultDiv.style.display = 'block';
-      
-      setTimeout(() => {
-        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
-    }
+function displayResults(employees, isFallback = false) {
+  employeesList.innerHTML = '';
+  
+  // Убираем массив медалей и цикл по индексам, так как иконки больше не нужны
+  employees.slice(0, 5).forEach((emp) => {
+    const div = document.createElement('div');
+    div.className = 'employee';
+    
+    // Теперь просто выводим имя без смайликов перед ним
+    div.innerHTML = `
+      <div class="employee-name">${emp.name || '—'}</div>
+      📞 Звонки: ${emp.calls || '–'}<br>
+      ⏱ AHT: ${emp.aht || '–'}<br>
+      ❌ Пропущенные: ${emp.missed || '–'}<br>
+      ✅ Качество: ${emp.quality || '–'}
+    `;
+    employeesList.appendChild(div);
+  });
+  
+  resultDiv.style.display = 'block';
+  
+  // Прокрутка к результатам
+  setTimeout(() => {
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
 
     // === ОШИБКА ===
     function displayError(message) {
